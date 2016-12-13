@@ -6,6 +6,9 @@
                 <i :style="{transform:'rotate(-'+(audio.currentTime/audio.duration)*360+'deg)'}" class="fa fa-music"></i>
             </div>
             <!-- 这里做成3D的， 反面可以翻过来，进行下载、评星等操作-->
+
+
+
             <div class="cover">
 
                 <img width="100%" :src="coverUrl">
@@ -26,7 +29,7 @@
                     <div class="other">
                         <i class="fa fa-heart"></i>
                         <i class="fa fa-random"></i>
-                        <i class="fa fa-forward"></i>
+                        <i @click="playNext()" class="fa fa-forward"></i>
                     </div>
 
                 </div>
@@ -35,7 +38,6 @@
             </div>
 
         </div>
-
         <div ref="lrcboard" class="lrcboard" :class="{blur:isSearch}" id="lrcboard">
             <ul ref="lrc" id="lrc">
                 <li v-if="!lrc.result" style=" line-height: 1000%;">♪~ ゛(´д｀*)゛~♪~♪　ﾌﾝﾌﾝ</li>
@@ -44,18 +46,17 @@
         </div>
 
         <div class="searchBoard" :class="{active:isSearch}">
-
-            <div v-if="showSearch||searchInput||searchResults" @click="closeSearch" style="position:fixed;top:0;left:0;z-index:2;width:100px;height:80px;line-height:80px;text-align:center;background-color:rgba(0,0,0,.6);font-size:60px;color:#fff;cursor:pointer">
+            <div class="closeSearch" v-if="isSearch" @click="closeSearch">
                 <i class="fa fa-arrow-left"></i>
             </div>
-
+            <div v-if="search.result" class="prevSearchPage" @click="prevSearchPage"><i class="fa  fa-chevron-left"></i></div>
+            <div v-if="search.result" class="nextSearchPage" @click="nextSearchPage"><i class="fa  fa-chevron-right"></i></div>
             <div class="header" :class="{'active':isSearch}">
                 <h2 class="domain"> doremi.moe </h2>
             </div>
             <div class="search" :class="{'active':isSearch}">
-
                 <form id="search" @submit.prevent="doSearch">
-                    <input @focus="showSearch=true" @blur="showSearch=false" name="text" v-model="searchInput" class="searchInput" id="searchInput" placeholder="这里搜索噢～">
+                    <input @focus="search.show=true" @blur="search.show=false" name="text" v-model="search.input" class="searchInput" id="searchInput" placeholder="这里搜索噢～">
                     <label for="searchInput"></label>
                 </form>
 
@@ -65,7 +66,7 @@
 
             <div id="searchResult" class="body">
                 <transition-group name="searchResultAnimation">
-                    <div v-if="searchResults" v-for="(x,$index) in searchSongs" :key="'num_'+$index" class="result searchResultAnimation" :style="{transition:'all '+($index+1)*0.2+'s'}">
+                    <div v-if="search.songs" v-for="(x,$index) in search.songs" :key="'num_'+$index" class="result searchResultAnimation" :style="{transition:'all '+($index+1)*0.2+'s'}">
                         <div class="coverImg">
                             <img width="100%" :src="x.album.picUrl">
                         </div>
@@ -95,9 +96,14 @@
                         </div>
 
                     </div>
+
+                    <div v-show="isSearch&&search.doing" :key="'searching'" class="result" style="text-align: center">搜索中...</div>
+
                 </transition-group>
             </div>
         </div>
+
+
     </div>
 </template>
 
@@ -109,8 +115,16 @@
             return {
                 audio:document.createElement("audio"),
                 backgroundUrl:"",
-                showSearch:false,
-                searchResults:'',
+                randomList:[],
+                search:{
+                    show:false,
+                    result:"",
+                    songs:{},
+                    input:"",
+                    doing:false,
+                    nowPage:0,
+                    totalPage:0
+                },
                 isPlay:false,
                 currentTime:{
                     original:0,
@@ -120,8 +134,6 @@
                     original:0,
                     real:"00:00"
                 },
-                searchSongs:{},
-                searchInput:"",
                 lrc:{
                     result:"",
                     now:0,
@@ -136,14 +148,23 @@
         },
         mounted:function(){
             setInterval(this.updateLrc,100);
+            this.$http.get("http://127.0.0.1/api/playlist/324617415",{})
+                .then(function(data){
+
+                    this.randomList = data.data.result.tracks;
+
+
+                },function(data){
+
+                });
             this.audio.addEventListener("onloadstart",function(data){
-                console.log("onloadstart");
                 console.log(data)
-            })
+            });
+            this.audio.addEventListener("ended",this.playRandom);
         },
         computed:{
             isSearch:function(){
-                return this.showSearch||this.searchInput||this.searchResults;
+                return this.search.show||this.search.input||this.search.result;
             }
         },
         watch:{
@@ -156,21 +177,22 @@
         },
         methods:{
             closeSearch:function(){
-                this.showSearch=false;
-                this.searchInput="";
-                this.searchResults='';
+                this.search.show=false;
+                this.search.input="";
+                this.search.result='';
+                this.search.songs='';
             },
             setPlay:function(id,url){
-
+                this.pause();
                 let that = this;
                 if(url){
                     this.audio.src=url;
                 } else {
-                    this.$http.get('/api/song/'+id,{})
+                    this.$http.get('http://127.0.0.1/api/song/'+id,{})
                         .then(function(res){
                             that.audio.src = res.data.songs[0].mp3Url;
                             that.coverUrl = res.data.songs[0].album.picUrl;
-                            that.play();
+                            !that.isPlay&&that.play();
                             that.getLrc(id);
                             that.backgroundUrl=that.coverUrl;
                             that.lrc.now=0;
@@ -180,6 +202,7 @@
                 }
             },
             play:function(url){
+
                 this.audio.play();
                 this.isPlay=true;
             },
@@ -187,18 +210,28 @@
                 this.audio.pause();
                 this.isPlay=false;
             },
+            playNext:function(){
+                this.playRandom();
+            },
             doSearch:function(){
-                this.$http.get('/api/search/'+this.searchInput+"/0/10",{})
+                this.search.doing=true;
+                this.search.songs={};
+                this.$http.get('http://127.0.0.1/api/search/'+this.search.input+"/0/10",{})
                     .then(function(res){
-                        this.searchResults=res.data;
-                        this.searchSongs=res.data.result.songs;
+                        this.search.results=res.data;
+                        this.search.songs=res.data.result.songs;
+                        this.search.doing=false;
                     },function(res){
                         console.log("error");
+                        this.search.doing=false;
                     })
 
             },
+            playRandom:function(){
+                this.setPlay(this.randomList[Math.floor(Math.random()*(this.randomList.length))].id);
+            },
             getLrc:function(id){
-                this.$http.get('/api/lrc/'+id,{})
+                this.$http.get('http://127.0.0.1/api/lrc/'+id,{})
                     .then(function(res){
                         if(res.data.code==200){
                             this.parseLrc(res.data.lrc.lyric)
@@ -327,7 +360,6 @@
                             let scrollTo = function(){
                                 from+=dur;
                                 el.scrollTop = from;
-                                console.log(from+" -> "+to +"  :"+dur);
                                 if(dur>0&&from<to){
                                     requestAnimationFrame(scrollTo);
                                 }else if(dur<0&&from>to){
@@ -339,7 +371,6 @@
 
                             //this.$refs.lrcboard.scrollTop = this.$refs.lrc.querySelector(".active").offsetTop;
 
-                            console.log(this.$refs.lrc.querySelector(".active").offsetTop);
 
                             break;
                         }
@@ -385,6 +416,27 @@
     .searchResultAnimation-leave-active{
         transition: all .3s!important;
         opacity:0;
+    }
+    .prevSearchPage{
+        position:fixed;
+        left:0;
+        top:0;
+        height:100%;
+        font-size:100px;
+        width:100px;
+    }
+    .nextSearchPage{
+        position:fixed;
+        right:0;
+        top:0;
+        height:100%;
+        font-size:100px;
+        width:100px;
+    }
+    .prevSearchPage i,.nextSearchPage i{
+        position:absolute;
+        top:50%;
+        margin-top:-80px;
     }
     html,body{
         margin:0;
@@ -455,7 +507,7 @@
         -ms-transition-duration: .6s;
         -o-transition-duration: .6s;
         transition-duration: .6s;
-        transition-delay: .6s;
+        transition-delay: .3s;
     }
     .lrcboard.blur{
         -webkit-filter: blur(10px); /* Chrome, Opera */
@@ -507,7 +559,6 @@
         pointer-events: none;
     }
     .searchBoard.active{
-        will-change:transform;
         background-color: rgba(153,153,153,.2);
         pointer-events: auto;
     }
@@ -534,6 +585,20 @@
         left:0;
         transform: translateY(-70px) scale(1);
         pointer-events: auto;
+    }
+    .closeSearch{
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 2;
+        width: 100px;
+        height: 80px;
+        line-height: 80px;
+        text-align: center;
+        background-color: rgba(0, 0, 0, .6);
+        font-size: 60px;
+        color: #fff;
+        cursor: pointer
     }
     .search.active{
         will-change:transform,left;
@@ -620,8 +685,8 @@
         cursor:pointer;
     }
     .resultDetail{
-        height:40px;
-        line-height: 40px;
+        height:35px;
+        line-height: 35px;
         padding-left:100px;
         border-radius: 5px;
         background-color: rgba(251,251,251,.8);
@@ -664,14 +729,14 @@
     }
     .rCover{
         margin-left:1px;
-        width:120px;
-        height:120px;
+        width:100px;
+        height:100px;
         display: inline-block;
         box-shadow:4px 0 0 0 rgba(102,204,255,.5);
     }
     .rCover img{
-        width:120px;
-        height:120px;
+        width:100px;
+        height:100px;
     }
     .rDetail{
         position:relative;

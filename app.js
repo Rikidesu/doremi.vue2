@@ -18,28 +18,57 @@ app.get('/',function(req,res){
 });
 
 app.get('/api/search/:text/:page/:limit',function(req,res){
+try{
+    api.search(req.params.text,function(data){
+        res.send(data);
+        console.log('get search success  text:'+req.params.text);
+    },req.params.limit||10,req.params.limit*req.params.page||0);
+} catch(e){
 
-	api.search(req.params.text,function(data){
-				res.send(data);
-			},req.params.limit||10,req.params.limit*req.params.page||0);
+}
 });
 
 app.get('/api/song/:id',function(req,res){
-
+try{
 	api.song(req.params.id,function(data){
 
 		res.send(data);
-		console.log(data);
+        console.log('get song success  id:'+req.params.id);
 	})
+}catch(e){
 
+}
 });
 app.get('/api/lrc/:id',function(req,res){
+try{
+    api.lrc(req.params.id,function(data){
 
-	api.lrc(req.params.id,function(data){
+        res.send(data);
+        console.log('get lrc success  id:'+req.params.id);
+    })
+}catch(e){
 
-		res.send(data);
-		console.log(data);
-	})
+}
+
+});
+app.get('/api/playlist/:id',function(req,res){
+try{
+    api.playlists(req.params.id,function(data){
+        res.send(data);
+        console.log('get playlist success  id:'+req.params.id);
+    })
+}catch(e){}
+});
+app.get('/api/userplaylist/:id',function(req,res){
+	try{
+    api.userPlaylists(req.params.id,function(data){
+        res.send(data);
+        console.log(data);
+        console.log('get userplaylist success  id:'+req.params.id);
+    })
+    }catch(e){
+
+	}
 
 });
 app.listen(80);
