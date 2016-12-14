@@ -148,7 +148,7 @@
         },
         mounted:function(){
             setInterval(this.updateLrc,100);
-            this.$http.get("http://127.0.0.1/api/playlist/324617415",{})
+            this.$http.get("/api/playlist/324617415",{})
                 .then(function(data){
 
                     this.randomList = data.data.result.tracks;
@@ -188,7 +188,7 @@
                 if(url){
                     this.audio.src=url;
                 } else {
-                    this.$http.get('http://127.0.0.1/api/song/'+id,{})
+                    this.$http.get('/api/song/'+id,{})
                         .then(function(res){
                             that.audio.src = res.data.songs[0].mp3Url;
                             that.coverUrl = res.data.songs[0].album.picUrl;
@@ -213,12 +213,13 @@
             playNext:function(){
                 this.playRandom();
             },
-            doSearch:function(){
+            doSearch:function(page){
+                page=page||0;
                 this.search.doing=true;
                 this.search.songs={};
-                this.$http.get('http://127.0.0.1/api/search/'+this.search.input+"/0/10",{})
+                this.$http.get('/api/search/'+this.search.input+"/"+page+"/10",{})
                     .then(function(res){
-                        this.search.results=res.data;
+                        this.search.result=res.data;
                         this.search.songs=res.data.result.songs;
                         this.search.doing=false;
                     },function(res){
@@ -230,8 +231,20 @@
             playRandom:function(){
                 this.setPlay(this.randomList[Math.floor(Math.random()*(this.randomList.length))].id);
             },
+            prevSearchPage:function(){
+
+                if(this.search.nowPage>0){
+                    this.doSearch(--this.search.nowPage);
+                }
+
+            },
+            nextSearchPage:function(){
+                this.doSearch(++this.search.nowPage);
+
+
+            },
             getLrc:function(id){
-                this.$http.get('http://127.0.0.1/api/lrc/'+id,{})
+                this.$http.get('/api/lrc/'+id,{})
                     .then(function(res){
                         if(res.data.code==200){
                             this.parseLrc(res.data.lrc.lyric)
@@ -424,6 +437,7 @@
         height:100%;
         font-size:100px;
         width:100px;
+        cursor:pointer;
     }
     .nextSearchPage{
         position:fixed;
@@ -432,6 +446,7 @@
         height:100%;
         font-size:100px;
         width:100px;
+        cursor:pointer;
     }
     .prevSearchPage i,.nextSearchPage i{
         position:absolute;

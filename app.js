@@ -1,6 +1,7 @@
-var express = require("express");
-var app = express();
-var api = require("NeteaseMusicApi");
+const express = require("express");
+const app = express();
+const api = require("neteaseMusicApi");
+//const api2 = require("NeteaseCloudMusicApi").api;
 
 app.use(express.static('./'));
 
@@ -18,57 +19,60 @@ app.get('/',function(req,res){
 });
 
 app.get('/api/search/:text/:page/:limit',function(req,res){
-try{
+//try{
     api.search(req.params.text,function(data){
         res.send(data);
         console.log('get search success  text:'+req.params.text);
     },req.params.limit||10,req.params.limit*req.params.page||0);
-} catch(e){
+//} catch(e){
 
-}
+//}
 });
 
-app.get('/api/song/:id',function(req,res){
-try{
-	api.song(req.params.id,function(data){
+app.get('/api/song/:id',function(req,res) {
+//try{
+    api.song(req.params.id, function (data) {
 
-		res.send(data);
-        console.log('get song success  id:'+req.params.id);
-	})
-}catch(e){
+        res.send(data);
+        console.log('get song success  id:' + req.params.id);
+//	})
+//}catch(e){
 
-}
+//}
+    });
 });
 app.get('/api/lrc/:id',function(req,res){
-try{
+//try{
     api.lrc(req.params.id,function(data){
 
         res.send(data);
         console.log('get lrc success  id:'+req.params.id);
-    })
-}catch(e){
+    });
+//}catch(e){
 
-}
+//}
 
 });
-app.get('/api/playlist/:id',function(req,res){
-try{
-    api.playlists(req.params.id,function(data){
+app.get('/api/playlist/:id',function(req,res) {
+//try{
+    api.playlists(req.params.id, function (data) {
         res.send(data);
-        console.log('get playlist success  id:'+req.params.id);
-    })
-}catch(e){}
+        console.log('get playlist success  id:' + req.params.id);
+//    })
+//}catch(e){}
+    });
 });
 app.get('/api/userplaylist/:id',function(req,res){
-	try{
+//	try{
     api.userPlaylists(req.params.id,function(data){
         res.send(data);
         console.log(data);
         console.log('get userplaylist success  id:'+req.params.id);
-    })
-    }catch(e){
+    });
+//    }catch(e){
 
-	}
+//	}
 
 });
+console.log("running");
 app.listen(80);
