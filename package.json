@@ -12,7 +12,10 @@
     "element-ui": "^1.0.0",
     "vue": "^2.1.0",
     "vue-resource": "^1.0.3",
-    "vue-router": "^2.1.1"
+    "vue-router": "^2.1.1",
+    "big-integer": "^1.6.17",
+    "express": "^4.15.2",
+    "request": "^2.81.0"
   },
   "devDependencies": {
     "FontAwesome-webpack": "0.0.2",
@@ -27,6 +30,9 @@
     "vue-loader": "^10.0.0",
     "vue-template-compiler": "^2.1.0",
     "webpack": "^2.1.0-beta.25",
-    "webpack-dev-server": "^2.1.0-beta.0"
+    "webpack-dev-server": "^2.1.0-beta.0",
+    "intelli-espower-loader": "^1.0.1",
+    "mocha": "^3.2.0",
+    "power-assert": "^1.4.2"
   }
 }
