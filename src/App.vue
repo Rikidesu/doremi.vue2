@@ -11,7 +11,7 @@
 
             <div class="cover">
 
-                <img width="100%" :src="coverUrl">
+                <div class="playingImg" :style="{backgroundImage: 'url('+coverUrl+')'}" ></div>
 
                 <div class="controller">
 
@@ -45,6 +45,15 @@
             </ul>
         </div>
 
+        <div class="songInfo">
+            <div class="songTitle">
+                <h3>{{nowPlaying.name}}</h3>
+            </div>
+            <div class="songSinger">
+                {{nowPlaying.ar&&nowPlaying.ar[0].name||nowPlaying.artists&&nowPlaying.artists[0].name}}
+            </div>
+        </div>
+
         <div class="searchBoard" :class="{active:isSearch}">
             <div class="closeSearch" v-if="isSearch" @click="closeSearch">
                 <i class="fa fa-arrow-left"></i>
@@ -55,7 +64,7 @@
                 <h2 class="domain"> doremi.moe </h2>
             </div>
             <div class="search" :class="{'active':isSearch}">
-                <form id="search" @submit.prevent="doSearch">
+                <form id="search" @submit.prevent="doSearch(0)">
                     <input @focus="search.show=true" @blur="search.show=false" name="text" v-model="search.input" class="searchInput" id="searchInput" placeholder="这里搜索噢～">
                     <label for="searchInput"></label>
                 </form>
@@ -80,7 +89,7 @@
                                 <i class="fa fa-star-o"></i>
                               </span>
                               <span>
-                                <i @click="setPlay(x.id)" class="fa fa-play"></i>
+                                <i @click="setPlay(x)" class="fa fa-play"></i>
                               </span>
                             </span>
                         </div>
@@ -140,6 +149,7 @@
                     dom:''
                 },
                 autoplay:false,
+                nowPlaying:'',
                 mp3Url:"./src/demo.mp3",
                 radio: '1',
                 coverUrl:"./src/img/cover.png",
@@ -148,11 +158,10 @@
         },
         mounted:function(){
             setInterval(this.updateLrc,100);
-            this.$http.get("/api/playlist/324617415",{})
+            this.$http.get("/playlist/detail?id=324617415",{})
                 .then(function(data){
 
-                    this.randomList = data.data.result.tracks;
-
+                    this.randomList = data.data.playlist.tracks;
 
                 },function(data){
 
@@ -182,27 +191,35 @@
                 this.search.result='';
                 this.search.songs='';
             },
-            setPlay:function(id,url){
+            setPlay:function(ele,url){
                 this.pause();
                 let that = this;
                 if(url){
                     this.audio.src=url;
                 } else {
-                    this.$http.get('/api/song/'+id,{})
+
+
+                    that.coverUrl = ele.album&&ele.album.blurPicUrl||ele.al&&ele.al.picUrl||that.coverUrl;
+                    that.backgroundUrl=that.coverUrl;
+                    that.lrc.now=0;
+
+                    this.$http.get('/music/url?id='+ele.id,{})
                         .then(function(res){
-                            that.audio.src = res.data.songs[0].mp3Url;
-                            that.coverUrl = res.data.songs[0].album.picUrl;
+
+                            if(!res.data.data[0].url){
+                                return that.playNext();
+                            }
+
+                            that.nowPlaying = ele;
+                            that.audio.src = res.data.data[0].url;
                             !that.isPlay&&that.play();
-                            that.getLrc(id);
-                            that.backgroundUrl=that.coverUrl;
-                            that.lrc.now=0;
+                            that.getLrc(ele.id);
                         },function(res){
                             console.info(res)
                         })
                 }
             },
             play:function(url){
-
                 this.audio.play();
                 this.isPlay=true;
             },
@@ -214,22 +231,23 @@
                 this.playRandom();
             },
             doSearch:function(page){
-                page=page||0;
+                this.search.nowPage = page||0;
                 this.search.doing=true;
                 this.search.songs={};
-                this.$http.get('/api/search/'+this.search.input+"/"+page+"/10",{})
+                let that = this;
+                this.$http.get('/search?keywords='+this.search.input+"&offset="+this.search.nowPage*10+"&limit=10",{})
                     .then(function(res){
-                        this.search.result=res.data;
-                        this.search.songs=res.data.result.songs;
-                        this.search.doing=false;
+                        that.search.result=res.data;
+                        that.search.songs=res.data.result.songs;
+                        that.search.doing=false;
                     },function(res){
-                        console.log("error");
-                        this.search.doing=false;
+                        console.info("error");
+                        that.search.doing=false;
                     })
 
             },
             playRandom:function(){
-                this.setPlay(this.randomList[Math.floor(Math.random()*(this.randomList.length))].id);
+                this.setPlay(this.randomList[Math.floor(Math.random()*(this.randomList.length))]);
             },
             prevSearchPage:function(){
 
@@ -244,7 +262,7 @@
 
             },
             getLrc:function(id){
-                this.$http.get('/api/lrc/'+id,{})
+                this.$http.get('/lyric?id='+id,{})
                     .then(function(res){
                         if(res.data.code==200){
                             this.parseLrc(res.data.lrc.lyric)
@@ -365,6 +383,7 @@
                             this.lrc.now=i+1;
 
 
+                            try{
                             let el = this.$refs.lrcboard;
                             let from = this.$refs.lrcboard.scrollTop;
                             let toEl = this.$refs.lrc.querySelector(".active");
@@ -386,6 +405,9 @@
 
 
                             break;
+                            }catch(e){
+
+                            }
                         }
                     }
                 }
@@ -407,10 +429,10 @@
         height:100%;
         background-size: cover;
         z-index: -1;
-        -webkit-filter: blur(20px); /* Chrome, Opera */
-        -moz-filter: blur(20px);
-        -ms-filter: blur(20px);
-        filter: blur(20px);
+        -webkit-filter: blur(15px); /* Chrome, Opera */
+        -moz-filter: blur(15px);
+        -ms-filter: blur(15px);
+        filter: blur(15px);
         opacity:.4;
     }
     .searchResultAnimation{
@@ -485,7 +507,7 @@
         width:160px;
         height:160px;
         border-radius:100%;
-        border:solid 4px #cccccc;
+        border:solid 4px #fff;
         overflow:hidden;
         box-shadow:0 0 3px 3px rgba(51,51,51,.06);
     }
@@ -499,7 +521,7 @@
     }
     .progress i{
         position: absolute;
-        color: #666;
+        color: #111;
         font-size: 20px;
         margin-left:-10px;
         top: -20px;
@@ -563,6 +585,17 @@
         transform: scale(1.1);
         color:#6cf;
         text-shadow: 0 0 6px #6cf;
+    }
+    .songInfo{
+        position: absolute;
+        right: 30px;
+    }
+    .songTitle{
+
+    }
+    .songSinger{
+        text-align: right;
+
     }
     .searchBoard{
         position:relative;
@@ -802,6 +835,12 @@
         border-radius: 100%;
         background-color: rgba(102,204,255,0.7);
     }
+    .playingImg{
+        height: 100%;
+        width: 100%;
+        background-repeat: no-repeat;
+        background-size: cover;
+    }
     .time{
         position:relative;
         top:14px;
@@ -826,6 +865,7 @@
     .other i{
         margin:10px;
         position:relative;
+        cursor: pointer;
     }
     .other .fa-random{
         top:30px;

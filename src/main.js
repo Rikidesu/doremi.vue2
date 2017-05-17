@@ -1,6 +1,6 @@
 import Vue from 'vue';
 //import ElementUI from 'element-ui';
-require("./assets/font-awesome/css/font-awesome.min.css");
+require("./assets/font-awesome/css/font-awesome.css");
 require("./default.css");
 require("./jquery.js");
 import App from './App.vue';
