@@ -8,6 +8,7 @@ import vueResource from 'vue-resource';
 
 Vue.use(vueResource);
 
+
 //Vue.use(ElementUI);
 new Vue({
   el: '#app',

@@ -1,43 +1,7 @@
 <template>
     <div id="app">
         <div id="background" :style="{backgroundImage:'url('+backgroundUrl+')'}"></div>
-        <div id="side" class="side">
-            <div class="progress" :style="{transform:'rotate('+(audio.currentTime/audio.duration)*360+'deg)'}">
-                <i :style="{transform:'rotate(-'+(audio.currentTime/audio.duration)*360+'deg)'}" class="fa fa-music"></i>
-            </div>
-            <!-- 这里做成3D的， 反面可以翻过来，进行下载、评星等操作-->
-
-
-
-            <div class="cover">
-
-                <div class="playingImg" :style="{backgroundImage: 'url('+coverUrl+')'}" ></div>
-
-                <div class="controller">
-
-                    <div class="coverModel">
-
-                    </div>
-
-                    <div @click="isPlay?pause():play()" class="play">
-                        <i class="fa" :class="{'fa-pause':isPlay,'fa-play':!isPlay}"></i>
-                    </div>
-                    <div class="time">
-                        <div>{{currentTime.real}}</div>
-                        <div>{{duration.real}}</div>
-                    </div>
-                    <div class="other">
-                        <i class="fa fa-heart"></i>
-                        <i class="fa fa-random"></i>
-                        <i @click="playNext()" class="fa fa-forward"></i>
-                    </div>
-
-                </div>
-
-
-            </div>
-
-        </div>
+        <player :data="$data" ref="player" v-on:getLrc="getLrc"></player>
         <div ref="lrcboard" class="lrcboard" :class="{blur:isSearch}" id="lrcboard">
             <ul ref="lrc" id="lrc">
                 <li v-if="!lrc.result" style=" line-height: 1000%;">ヽ(*´∀｀*)ノ.+ﾟおはよ～♪.+ﾟ</li>
@@ -118,7 +82,11 @@
 
 <script>
     "use strict";
+    import player from './components/playerController.vue';
     export default {
+        components:{
+            player
+        },
         name: 'app',
         data:function () {
             return {
@@ -167,8 +135,7 @@
                 },function(data){
 
                 });
-            this.audio.addEventListener("onloadstart",function(data){
-                console.log(data)
+            this.audio.addEventListener("play",function(data){
             });
             this.audio.addEventListener("ended",that.playNext);
         },
@@ -193,43 +160,16 @@
                 this.search.songs='';
             },
             setPlay:function(ele,url){
-                this.pause();
-                let that = this;
-                if(url){
-                    this.audio.src=url;
-                } else {
-
-
-                    that.coverUrl = ele.album&&ele.album.blurPicUrl||ele.al&&ele.al.picUrl||that.coverUrl;
-                    that.backgroundUrl=that.coverUrl;
-                    that.lrc.now=0;
-
-                    this.$http.get('/music/url?id='+ele.id,{})
-                        .then(function(res){
-
-                            if(!res.data.data[0].url){
-                                return that.playNext();
-                            }
-
-                            that.nowPlaying = ele;
-                            that.audio.src = res.data.data[0].url;
-                            !that.isPlay&&that.play();
-                            that.getLrc(ele.id);
-                        },function(res){
-                            console.info(res)
-                        })
-                }
+                this.$refs.player.setPlay(ele,url);
             },
             play:function(url){
-                !this.isPlay&&this.audio.play();
-                this.isPlay=true;
+                this.$refs.player.play(url);
             },
             pause:function(){
-                this.isPlay&&this.audio.pause();
-                this.isPlay=false;
+                this.$refs.player.pause();
             },
             playNext:function(){
-                this.playRandom();
+                this.$refs.player.playNext();
             },
             doSearch:function(page){
                 this.search.nowPage = page||0;
@@ -247,9 +187,6 @@
                     })
 
             },
-            playRandom:function(){
-                this.setPlay(this.randomList[Math.floor(Math.random()*(this.randomList.length))]);
-            },
             prevSearchPage:function(){
 
                 if(this.search.nowPage>0){
@@ -263,10 +200,11 @@
 
             },
             getLrc:function(id){
+                id = id ||this.nowPlaying.id;
                 this.$http.get('/lyric?id='+id,{})
                     .then(function(res){
                         if(res.data.code==200){
-                            this.parseLrc(res.data.lrc.lyric)
+                            res.data.lrc&&this.parseLrc(res.data.lrc.lyric)
                         }
                     },function(res){
                         console.log('error')
@@ -372,19 +310,17 @@
                 }
             },
             updateLrc:function(){
-                //this.currentTime=this.audio.currentTime;
+                let that = this;
                 this.isPlay = !this.audio.paused;
                 this.currentTime.original=this.audio.currentTime;
                 this.currentTime.real = ((this.audio.currentTime/60)<10?"0":"")+parseInt(this.audio.currentTime/60)+":"+(parseInt(this.audio.currentTime%60)<10?"0":"")+parseInt(this.audio.currentTime%60);
                 this.duration.original=this.audio.duration;
                 this.duration.real = ((this.audio.duration/60)<10?"0":"")+parseInt(this.audio.duration/60)+":"+(parseInt(this.audio.duration%60)<10?"0":"")+parseInt(this.audio.duration%60);
                 if(this.lrc.result){
-                    console.log("ok");
+
                     for(let i=this.lrc.now;i<this.lrc.result.length;i++){
                         if(this.audio.currentTime>=this.lrc.result[i][0]){
                             this.lrc.now=i+1;
-
-
                             try{
                             let el = this.$refs.lrcboard;
                             let from = this.$refs.lrcboard.scrollTop;
@@ -406,10 +342,14 @@
                             //this.$refs.lrcboard.scrollTop = this.$refs.lrc.querySelector(".active").offsetTop;
 
 
-                            break;
                             }catch(e){
 
                             }
+
+                            break;
+                        } else if(parseInt(this.audio.currentTime)==0){
+                            that.lrc.now=0;
+                            that.$refs.lrcboard.scrollTop=0;
                         }
                     }
                 }
@@ -497,38 +437,38 @@
         height:8px;
 
     }
-    .side{
-        position:fixed;
-        bottom:20px;
-        left:30px;
-        z-index: 10;
-    }
-    .cover{
-        position:relative;
-        margin:0 auto;
-        width:160px;
-        height:160px;
-        border-radius:100%;
-        border:solid 4px #fff;
-        overflow:hidden;
-        box-shadow:0 0 3px 3px rgba(51,51,51,.06);
-    }
-    .progress{
-        position:absolute;
-        width:100%;
-        height:100%;
-        top:0;
-        left:0;
-        border-radius:100%;
-    }
-    .progress i{
-        position: absolute;
-        color: #111;
-        font-size: 20px;
-        margin-left:-10px;
-        top: -20px;
-        left: 50%;
-    }
+    /*.side{*/
+        /*position:fixed;*/
+        /*bottom:20px;*/
+        /*left:30px;*/
+        /*z-index: 10;*/
+    /*}*/
+    /*.cover{*/
+        /*position:relative;*/
+        /*margin:0 auto;*/
+        /*width:160px;*/
+        /*height:160px;*/
+        /*border-radius:100%;*/
+        /*border:solid 4px #fff;*/
+        /*overflow:hidden;*/
+        /*box-shadow:0 0 3px 3px rgba(51,51,51,.06);*/
+    /*}*/
+    /*.progress{*/
+        /*position:absolute;*/
+        /*width:100%;*/
+        /*height:100%;*/
+        /*top:0;*/
+        /*left:0;*/
+        /*border-radius:100%;*/
+    /*}*/
+    /*.progress i{*/
+        /*position: absolute;*/
+        /*color: #111;*/
+        /*font-size: 20px;*/
+        /*margin-left:-10px;*/
+        /*top: -20px;*/
+        /*left: 50%;*/
+    /*}*/
     .lrcboard{
         position: absolute;
         top:0;
@@ -687,10 +627,6 @@
         background-color: #fff;*/
     }
 
-    .cover:hover .controller{
-        transform: scale(1) translateY(0);
-        opacity:.93
-    }
     .results{
         position:relative;
         margin:10px auto;
@@ -807,75 +743,75 @@
         font-size:80px;
         color:#666;
     }
-    .controller{
-        position:absolute;
-        top:0;
-        width:100%;
-        height:100%;
-        bottom:10px;
-        opacity: 0;
-        border-radius:100%;
-        overflow: hidden;
-        transform: scale(1.2) translateY(-5px);
-        transition: all .3s;
-    }
-    .play{
-        position:relative;
-        margin:25px auto -15px auto;
-        text-align: center;
-        color:#FFF;
-        font-size: 50px;
-        cursor:pointer;
-        text-shadow: 0 0 3px rgba(51,51,51,.6);
-    }
-    .coverModel{
-        position: absolute;
-        top: 80px;
-        width: 380px;
-        left: -111px;
-        height: 300px;
-        border-radius: 100%;
-        background-color: rgba(102,204,255,0.7);
-    }
-    .playingImg{
-        height: 100%;
-        width: 100%;
-        background-repeat: no-repeat;
-        background-size: cover;
-    }
-    .time{
-        position:relative;
-        top:14px;
-        height:22px;
-        color:#eee;
-        font-size:small;
-        text-align: center;
-    }
-    .time div:first-child{
-        margin-bottom:2px;
-        display: inline-block;
-        border-bottom: solid 2px rgba(255,204,255,0.8);
-    }
-    .other{
-        position:relative;
-        margin:0 auto 10px auto;
-        text-align: center;
-        color:#FFF;
-        font-size: 26px;
-        text-shadow: 0 0 3px rgba(51,51,51,.6);
-    }
-    .other i{
-        margin:10px;
-        position:relative;
-        cursor: pointer;
-    }
-    .other .fa-random{
-        top:30px;
-    }
-    .other .fa-heart{
-    }
-    .other .fa-forward{
-    }
+    /*.controller{*/
+        /*position:absolute;*/
+        /*top:0;*/
+        /*width:100%;*/
+        /*height:100%;*/
+        /*bottom:10px;*/
+        /*opacity: 0;*/
+        /*border-radius:100%;*/
+        /*overflow: hidden;*/
+        /*transform: scale(1.2) translateY(-5px);*/
+        /*transition: all .3s;*/
+    /*}*/
+    /*.play{*/
+        /*position:relative;*/
+        /*margin:25px auto -15px auto;*/
+        /*text-align: center;*/
+        /*color:#FFF;*/
+        /*font-size: 50px;*/
+        /*cursor:pointer;*/
+        /*text-shadow: 0 0 3px rgba(51,51,51,.6);*/
+    /*}*/
+    /*.coverModel{*/
+        /*position: absolute;*/
+        /*top: 80px;*/
+        /*width: 380px;*/
+        /*left: -111px;*/
+        /*height: 300px;*/
+        /*border-radius: 100%;*/
+        /*background-color: rgba(102,204,255,0.7);*/
+    /*}*/
+    /*.playingImg{*/
+        /*height: 100%;*/
+        /*width: 100%;*/
+        /*background-repeat: no-repeat;*/
+        /*background-size: cover;*/
+    /*}*/
+    /*.time{*/
+        /*position:relative;*/
+        /*top:14px;*/
+        /*height:22px;*/
+        /*color:#eee;*/
+        /*font-size:small;*/
+        /*text-align: center;*/
+    /*}*/
+    /*.time div:first-child{*/
+        /*margin-bottom:2px;*/
+        /*display: inline-block;*/
+        /*border-bottom: solid 2px rgba(255,204,255,0.8);*/
+    /*}*/
+    /*.other{*/
+        /*position:relative;*/
+        /*margin:0 auto 10px auto;*/
+        /*text-align: center;*/
+        /*color:#FFF;*/
+        /*font-size: 26px;*/
+        /*text-shadow: 0 0 3px rgba(51,51,51,.6);*/
+    /*}*/
+    /*.other i{*/
+        /*margin:10px;*/
+        /*position:relative;*/
+        /*cursor: pointer;*/
+    /*}*/
+    /*.other .fa-random{*/
+        /*top:30px;*/
+    /*}*/
+    /*.other .fa-heart{*/
+    /*}*/
+    /*.other .fa-forward{*/
+    /*}*/
 
 
     .suki{
