@@ -40,7 +40,7 @@
         </div>
         <div ref="lrcboard" class="lrcboard" :class="{blur:isSearch}" id="lrcboard">
             <ul ref="lrc" id="lrc">
-                <li v-if="!lrc.result" style=" line-height: 1000%;">♪~ ゛(´д｀*)゛~♪~♪　ﾌﾝﾌﾝ</li>
+                <li v-if="!lrc.result" style=" line-height: 1000%;">ヽ(*´∀｀*)ノ.+ﾟおはよ～♪.+ﾟ</li>
                 <li :class="{active:$index==lrc.now-1}" v-for="(x,$index) in lrc.result">{{x[1] +" "}}</li>
             </ul>
         </div>
@@ -65,7 +65,7 @@
             </div>
             <div class="search" :class="{'active':isSearch}">
                 <form id="search" @submit.prevent="doSearch(0)">
-                    <input @focus="search.show=true" @blur="search.show=false" name="text" v-model="search.input" class="searchInput" id="searchInput" placeholder="这里搜索噢～">
+                    <input @focus="search.show=true" autofocus="autofocus" @blur="search.show=false" name="text" v-model="search.input" class="searchInput" id="searchInput" placeholder="这里搜索噢～">
                     <label for="searchInput"></label>
                 </form>
 
@@ -123,7 +123,7 @@
         data:function () {
             return {
                 audio:document.createElement("audio"),
-                backgroundUrl:"",
+                backgroundUrl:"./src/img/default.jpg",
                 randomList:[],
                 search:{
                     show:false,
@@ -152,11 +152,12 @@
                 nowPlaying:'',
                 mp3Url:"./src/demo.mp3",
                 radio: '1',
-                coverUrl:"./src/img/cover.png",
+                coverUrl:"./src/img/default.jpg",
                 items: [1,2,3,4,5,6,7,8,9]
             }
         },
         mounted:function(){
+            let that = this;
             setInterval(this.updateLrc,100);
             this.$http.get("/playlist/detail?id=324617415",{})
                 .then(function(data){
@@ -169,7 +170,7 @@
             this.audio.addEventListener("onloadstart",function(data){
                 console.log(data)
             });
-            this.audio.addEventListener("ended",this.playRandom);
+            this.audio.addEventListener("ended",that.playNext);
         },
         computed:{
             isSearch:function(){
@@ -220,11 +221,11 @@
                 }
             },
             play:function(url){
-                this.audio.play();
+                !this.isPlay&&this.audio.play();
                 this.isPlay=true;
             },
             pause:function(){
-                this.audio.pause();
+                this.isPlay&&this.audio.pause();
                 this.isPlay=false;
             },
             playNext:function(){
@@ -378,6 +379,7 @@
                 this.duration.original=this.audio.duration;
                 this.duration.real = ((this.audio.duration/60)<10?"0":"")+parseInt(this.audio.duration/60)+":"+(parseInt(this.audio.duration%60)<10?"0":"")+parseInt(this.audio.duration%60);
                 if(this.lrc.result){
+                    console.log("ok");
                     for(let i=this.lrc.now;i<this.lrc.result.length;i++){
                         if(this.audio.currentTime>=this.lrc.result[i][0]){
                             this.lrc.now=i+1;
