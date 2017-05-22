@@ -181,11 +181,11 @@
         opacity:.93
     }
     .cover-container{
-        -webkit-transition: .4s;
-        -moz-transition: .4s;
-        -ms-transition: .4s;
-        -o-transition: .4s;
-        transition: .4s;
+        -webkit-transition: .8s;
+        -moz-transition: .8s;
+        -ms-transition: .8s;
+        -o-transition: .8s;
+        transition: .8s;
         transition-timing-function: ease-in-out;
         perspective: 202px;
         transform-style: preserve-3d;
@@ -202,6 +202,7 @@
         background-color: rgba(102,102,102,.95);
         border-right:solid 1px #eeeeee;
         text-align: center;
+        cursor:pointer;
     }
     .back-ctrl-left>.rotate-button{
         position:relative;
@@ -210,7 +211,6 @@
         top:50%;
         margin-top:-15px;
         color: #fff;
-        cursor:pointer;
     }
     .back-ctrl-right{
         position:relative;float: left;

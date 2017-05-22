@@ -347,7 +347,7 @@
                             }
 
                             break;
-                        } else if(parseInt(this.audio.currentTime)==0){
+                        } else if(this.audio.currentTime<=0.5){
                             that.lrc.now=0;
                             that.$refs.lrcboard.scrollTop=0;
                         }
@@ -525,8 +525,8 @@
         -ms-transform: scale(1.1);
         -o-transform: scale(1.1);
         transform: scale(1.1);
-        color:#6cf;
-        text-shadow: 0 0 6px #6cf;
+        color:#6698ff;
+        text-shadow: 0 0 6px #6698ff;
     }
     .songInfo{
         position: absolute;

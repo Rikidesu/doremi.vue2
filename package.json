@@ -1,5 +1,5 @@
 {
-  "name": "doremi.vue",
+  "name": "doremi.moe",
   "description": "A Vue.js project",
   "version": "1.0.0",
   "author": "Rikiponzu* <l@riki.cc>",
@@ -15,7 +15,8 @@
     "vue-router": "^2.1.1",
     "big-integer": "^1.6.17",
     "express": "^4.15.2",
-    "request": "^2.81.0"
+    "request": "^2.81.0",
+    "webpack": "^2.1.0-beta.25"
   },
   "devDependencies": {
     "FontAwesome-webpack": "0.0.2",
