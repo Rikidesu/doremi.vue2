@@ -13,8 +13,13 @@ const app = express()
 //   next()
 // })
 
+process.on('uncaughtException', function(err) {
+    console.log(err.stack);
+});
+
 
 app.use(express.static('./'));
+
 
 
 // 获取专辑内容
