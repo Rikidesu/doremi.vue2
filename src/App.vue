@@ -5,7 +5,10 @@
         <div ref="lrcboard" class="lrcboard" :class="{blur:isSearch}" id="lrcboard">
             <ul ref="lrc" id="lrc">
                 <li v-if="!lrc.result" style=" line-height: 1000%;">ヽ(*´∀｀*)ノ.+ﾟおはよ～♪.+ﾟ</li>
-                <li :class="{active:$index==lrc.now-1}" v-for="(x,$index) in lrc.result">{{x[1] +" "}}</li>
+                <li :class="{active:$index==lrc.now-1}" v-for="(x,$index) in lrc.result">
+                    <div class="lrc">{{x[1] +" "}}</div>
+                    <div class="tLrc" v-if="lrc.tShow&&lrc.tResult">{{ lrc.tResult&&lrc.tResult[x[0]] }}</div>
+                </li>
             </ul>
         </div>
 
@@ -58,14 +61,12 @@
                             </span>
                         </div>
                         <div class="resultDetail">
-              <span class="singer">
-                <span>歌手：</span><span style="padding-right:5px" v-for="s in x.artists">{{s.name}}</span>
-              </span>
+                            <span class="singer">
+                                <span>歌手：</span><span style="padding-right:5px" v-for="s in x.artists">{{s.name}}</span>
+                            </span>
                             <span class="album" :title="x.album.name">
-                专辑：album{{x.album.name}}
-              </span>
-
-
+                              专辑：album{{x.album.name}}
+                            </span>
                         </div>
 
                     </div>
@@ -112,6 +113,8 @@
                     real:"00:00"
                 },
                 lrc:{
+                    tShow:true,//是否显示翻译
+                    tResult:"",//翻译的歌词
                     result:"",
                     now:0,
                     dom:''
@@ -204,11 +207,22 @@
                 this.$http.get('/lyric?id='+id,{})
                     .then(function(res){
                         if(res.data.code==200){
-                            res.data.lrc&&this.parseLrc(res.data.lrc.lyric)
+                            let lrc = res.data.lrc&&res.data.lrc.lyric;
+                            let tLrc = res.data.tlyric&&res.data.tlyric.lyric;
+                            this.lrc.result = this.parseLrc(lrc);
+                            tLrc = this.parseLrc(tLrc) || "";
+                            this.parseTLrc(tLrc&&tLrc);
                         }
                     },function(res){
                         console.log('error')
                     })
+            },
+            parseTLrc:function(lrc){
+                let tLrc = {};
+                lrc.forEach(function(el,id){
+                    tLrc[el[0]] = el[1];
+                });
+                this.lrc.tResult = tLrc;
             },
             parseLrc:function(text){
                 try{
@@ -302,7 +316,8 @@
                             a[i][1] = a[i][1].replace(godlrc,"");
                         }
                     });
-                    this.lrc.result = result;
+                    //this.lrc.result = result;
+                    return result
                 }catch(e){
 
                     console.info(e)
@@ -505,13 +520,26 @@
         list-style: none;
     }
     .lrcboard li{
-        margin:30px 0 30px 0;
-        white-space:pre-wrap;
+        margin:32px 0 32px 0;
+        /*white-space:pre-wrap;*/
         -webkit-transition-duration: .6s;
         -moz-transition-duration: .6s;
         -ms-transition-duration: .6s;
         -o-transition-duration: .6s;
         transition-duration: .6s;
+    }
+    .lrc {
+        white-space: pre;
+    }
+    .tLrc {
+        position:absolute;
+        left:0;
+        right:0;
+        font-size:14px;
+        color:rgba(64, 77, 91, 0.8)
+    }
+    .lrcboard li.active .tLrc{
+        color:#6698ff;
     }
     /*
     .lrcboard li.hidden{

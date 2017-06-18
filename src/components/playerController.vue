@@ -47,11 +47,18 @@
                     </div>
                     <div class="back-ctrl-right">
                         <ul>
+                            <li>
+                                <label class="pointer" for="tLrcShow">
+                                    <input style="display: none" id="tLrcShow" type="checkbox" v-model="data.lrc.tShow" />
+                                    <i v-if="data.lrc.tShow" class="fa fa-check-square-o"></i>
+                                    <i v-if="!data.lrc.tShow" class="fa fa-square-o"></i>
+                                    <span>显示翻译</span>
+                                </label>
+                            </li>
                             <li><i class="fa fa-user-circle-o"></i> 登陆 </li>
                             <li><i class="fa fa-heart"></i> 最爱 </li>
                             <li><i class="fa fa-list-ul"></i> 歌单 </li>
                             <li><i class="fa fa-gear"></i> 页面设置 </li>
-                            <li><i class="fa fa-heart"></i> hello </li>
                             <li><i class="fa fa-heart"></i> hello </li>
                             <li><i class="fa fa-heart"></i> hello </li>
                             <li><i class="fa fa-heart"></i> hello </li>
@@ -197,7 +204,7 @@
         position:relative;
         float: left;
         box-sizing: border-box;
-        width:30%;
+        width:20%;
         height:100%;
         background-color: rgba(102,102,102,.95);
         border-right:solid 1px #eeeeee;
@@ -239,6 +246,9 @@
         width:0;
         height:0;
 
+    }
+    .pointer{
+        cursor:pointer
     }
     .progress{
         position:absolute;
