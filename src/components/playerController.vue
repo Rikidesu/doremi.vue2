@@ -55,6 +55,12 @@
                                     <span>显示翻译</span>
                                 </label>
                             </li>
+                            <li>
+                                <i v-if="data.audio.volume==0" class="fa fa-volume-off"></i>
+                                <i v-if="data.audio.volume>0&&data.audio.volume<=0.6" class="fa fa-volume-down"></i>
+                                <i v-if="data.audio.volume>0.6" class="fa fa-volume-up"></i>
+                                <input style="width:70px" type="range" step="any" v-model="data.audio.volume" min="0" max="1" />
+                            </li>
                             <li><i class="fa fa-user-circle-o"></i> 登陆 </li>
                             <li><i class="fa fa-heart"></i> 最爱 </li>
                             <li><i class="fa fa-list-ul"></i> 歌单 </li>
@@ -222,7 +228,7 @@
     .back-ctrl-right{
         position:relative;float: left;
         box-sizing: border-box;
-        width:69%;
+        width:79%;
         height:100%;
         overflow-x: hidden;
         overflow-y: auto ;
