@@ -2,7 +2,7 @@
     <div id="app">
         <div id="background" :style="{backgroundImage:'url('+backgroundUrl+')'}"></div>
         <player :data="$data" ref="player" v-on:getLrc="getLrc"></player>
-        <div ref="lrcboard" class="lrcboard" :class="{blur:isSearch}" id="lrcboard">
+        <div ref="lrcboard" class="lrcboard" :class="{blur:isSearch&&!secondScreen,zoom:secondScreen&&alwaysLrc}" id="lrcboard">
             <ul ref="lrc" id="lrc">
                 <li v-if="!lrc.result" style=" line-height: 1000%;">ヽ(*´∀｀*)ノ.+ﾟおはよ～♪.+ﾟ</li>
                 <li :class="{active:$index==lrc.now-1}" v-for="(x,$index) in lrc.result">
@@ -14,14 +14,18 @@
 
         <div class="songInfo">
             <div class="songTitle">
-                <h3>{{nowPlaying.name}}</h3>
+                <h3 title="歌名">{{nowPlaying.name}}</h3>
             </div>
             <div class="songSinger">
-                {{nowPlaying.ar&&nowPlaying.ar[0].name||nowPlaying.artists&&nowPlaying.artists[0].name}}
+                <ul style="list-style: none">
+                    <li title="歌手" v-for="x in nowPlaying.ar||nowPlaying.artists">
+                        {{x.name}}
+                    </li>
+                </ul>
             </div>
         </div>
 
-        <div class="searchBoard" :class="{active:isSearch}">
+        <div class="searchBoard" :class="{active:isSearch,zoom:secondScreen&&alwaysLrc}">
             <div class="closeSearch" v-if="isSearch" @click="closeSearch">
                 <i class="fa fa-arrow-left"></i>
             </div>
@@ -34,15 +38,17 @@
                 <form id="search" @submit.prevent="doSearch(0)">
                     <input @focus="search.show=true" autofocus="autofocus" @blur="search.show=false" name="text" v-model="search.input" class="searchInput" id="searchInput" placeholder="这里搜索噢～">
                     <label for="searchInput"></label>
+
+                    <label for="closeSearch">
+                        <i class="fa fa-search"></i>
+                        <input id="closeSearch" type="submit" style="display: none" />
+                    </label>
                 </form>
-
-                <i class="fa fa-search"></i>
-
             </div>
 
             <div id="searchResult" class="body">
                 <transition-group name="searchResultAnimation">
-                    <div v-if="search.songs" v-for="(x,$index) in search.songs" :key="'num_'+$index" class="result searchResultAnimation" :style="{transition:'all '+($index+1)*0.2+'s'}">
+                    <div v-if="search.songs" v-for="(x,$index) in search.songs" :key="'num_'+$index" class="result searchResultAnimation" :class="{small:secondScreen&&alwaysLrc}" :style="{transition:'all '+($index+1)*0.2+'s'}">
                         <div class="coverImg">
                             <img width="100%" :src="x.album.picUrl">
                         </div>
@@ -84,6 +90,7 @@
 <script>
     "use strict";
     import player from './components/playerController.vue';
+    import commentMusic from './components/commentMusic.vue';
     export default {
         components:{
             player
@@ -103,6 +110,8 @@
                     nowPage:0,
                     totalPage:0
                 },
+                alwaysLrc:true,
+                secondScreen:false,
                 isPlay:false,
                 currentTime:{
                     original:0,
@@ -144,7 +153,7 @@
         },
         computed:{
             isSearch:function(){
-                return this.search.show||this.search.input||this.search.result;
+                return this.secondScreen = this.search.show||this.search.input||this.search.result;
             }
         },
         watch:{
@@ -161,6 +170,7 @@
                 this.search.input="";
                 this.search.result='';
                 this.search.songs='';
+                this.secondScreen=false;
             },
             setPlay:function(ele,url){
                 this.$refs.player.setPlay(ele,url);
@@ -317,6 +327,8 @@
                         }
                     });
                     //this.lrc.result = result;
+                    result.unshift([0,'']);
+                    result.push([99999,''],[99999,'']);
                     return result
                 }catch(e){
 
@@ -410,7 +422,7 @@
         opacity:0;
     }
     .prevSearchPage{
-        position:fixed;
+        position:absolute;
         left:0;
         top:0;
         height:100%;
@@ -419,7 +431,7 @@
         cursor:pointer;
     }
     .nextSearchPage{
-        position:fixed;
+        position:absolute;
         right:0;
         top:0;
         height:100%;
@@ -495,13 +507,18 @@
         text-align:center;
         font-size: 28px;
         background-color:rgba(255,255,255,.3);
-        text-shadow: 0 0px 6px rgba(0,0,0,.4);
+        text-shadow: 0 0 6px rgba(0,0,0,.4);
         -webkit-transition-duration: .6s;
         -moz-transition-duration: .6s;
         -ms-transition-duration: .6s;
         -o-transition-duration: .6s;
         transition-duration: .6s;
         transition-delay: .3s;
+    }
+    .lrcboard.zoom{
+        width:40%;
+        font-size:18px;
+        border-right:solid 1px #666
     }
     .lrcboard.blur{
         -webkit-filter: blur(10px); /* Chrome, Opera */
@@ -559,6 +576,7 @@
     .songInfo{
         position: absolute;
         right: 30px;
+        text-align: right;
     }
     .songTitle{
 
@@ -568,7 +586,7 @@
 
     }
     .searchBoard{
-        position:relative;
+        position:absolute;
         height:100%;
         width:100%;
         overflow: hidden;
@@ -579,6 +597,10 @@
     .searchBoard.active{
         background-color: rgba(153,153,153,.2);
         pointer-events: auto;
+    }
+    .searchBoard.zoom{
+        width:60%;
+        right:0;
     }
     .header{
         position:relative;;;
@@ -605,7 +627,7 @@
         pointer-events: auto;
     }
     .closeSearch{
-        position: fixed;
+        position: absolute;
         top: 0;
         left: 0;
         z-index: 2;
@@ -651,6 +673,7 @@
         margin:30px auto;
         border-radius:4px;
         border:solid 1px transparent;
+        right:0;
         /*box-shadow: 1px 1px 1px 1px rgba(153,153,153,.2);
         background-color: #fff;*/
     }
@@ -670,6 +693,9 @@
         margin:30px auto;
         width:800px;
         height:110px;
+    }
+    .result.small{
+        width:600px;
     }
     .result .coverImg{
         position:absolute;

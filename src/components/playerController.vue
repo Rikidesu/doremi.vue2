@@ -61,6 +61,7 @@
                                 <i v-if="data.audio.volume>0.6" class="fa fa-volume-up"></i>
                                 <input style="width:70px" type="range" step="any" v-model="data.audio.volume" min="0" max="1" />
                             </li>
+                            <li @click="data.alwaysLrc = !data.alwaysLrc " ><i class="fa fa-list"></i> 播放列表 </li>
                             <li><i class="fa fa-user-circle-o"></i> 登陆 </li>
                             <li><i class="fa fa-heart"></i> 最爱 </li>
                             <li><i class="fa fa-list-ul"></i> 歌单 </li>
@@ -125,6 +126,7 @@
             setPlay:function(ele,url){
                 this.pause();
                 let that = this;
+                that.data.nowPlaying = ele;
                 if(url){
                     this.audio.src=url;
                 } else {
@@ -138,8 +140,6 @@
                             if(!res.data.data[0].url){
                                 return that.playNext();
                             }
-
-                            that.data.nowPlaying = ele;
                             that.data.audio.src = res.data.data[0].url;
                             !that.data.isPlay&&that.play();
                             this.$emit('getLrc');
