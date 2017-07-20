@@ -385,7 +385,7 @@
     }
 </script>
 
-<style>
+<style lang="sass">
     #app{
         height:100%;
         overflow-y: auto;
@@ -505,7 +505,7 @@
         overflow-y: auto;
         overflow-x: hidden;
         text-align:center;
-        font-size: 28px;
+        font-size: 24px;
         background-color:rgba(255,255,255,.3);
         text-shadow: 0 0 6px rgba(0,0,0,.4);
         -webkit-transition-duration: .6s;
@@ -590,8 +590,7 @@
         height:100%;
         width:100%;
         overflow: hidden;
-        overflow-y: auto;
-        transition:all .5s;
+        /*transition:all .5s;*/
         pointer-events: none;
     }
     .searchBoard.active{
@@ -669,11 +668,12 @@
     .body{
         width:900px;
         min-height:400px;
-        height:auto;
+        height:100%;
         margin:30px auto;
         border-radius:4px;
         border:solid 1px transparent;
         right:0;
+        overflow-y: auto;
         /*box-shadow: 1px 1px 1px 1px rgba(153,153,153,.2);
         background-color: #fff;*/
     }
@@ -711,6 +711,12 @@
     .resultTitle{
         position:relative;
         margin-left:80px;
+        h3{
+             max-width: calc( 100% - 160px );
+             text-overflow: ellipsis;
+             white-space: nowrap;
+             overflow: hidden;
+         }
     }
     .resultTitle .ctrl {
         position:absolute;
