@@ -56,12 +56,20 @@
                                 </label>
                             </li>
                             <li>
+                                <label class="pointer" for="tLrcShowTop">
+                                    <input style="display: none" id="tLrcShowTop" type="checkbox" v-model="data.lrc.alwaysShow" />
+                                    <i v-if="data.lrc.alwaysShow" class="fa fa-check-square-o"></i>
+                                    <i v-if="!data.lrc.alwaysShow" class="fa fa-square-o"></i>
+                                    <span>歌词始终显示</span>
+                                </label>
+                            </li>
+                            <li>
                                 <i v-if="data.audio.volume==0" class="fa fa-volume-off"></i>
                                 <i v-if="data.audio.volume>0&&data.audio.volume<=0.6" class="fa fa-volume-down"></i>
                                 <i v-if="data.audio.volume>0.6" class="fa fa-volume-up"></i>
                                 <input style="width:70px" type="range" step="any" v-model="data.audio.volume" min="0" max="1" />
                             </li>
-                            <li @click="data.alwaysLrc = !data.alwaysLrc " ><i class="fa fa-list"></i> 播放列表 </li>
+                            <li><i class="fa fa-list"></i> 播放列表 </li>
                             <li><i class="fa fa-user-circle-o"></i> 登陆 </li>
                             <li><i class="fa fa-heart"></i> 最爱 </li>
                             <li><i class="fa fa-list-ul"></i> 歌单 </li>

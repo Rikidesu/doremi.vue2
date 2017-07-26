@@ -2,7 +2,7 @@
     <div id="app">
         <div id="background" :style="{backgroundImage:'url('+backgroundUrl+')'}"></div>
         <player :data="$data" ref="player" v-on:getLrc="getLrc"></player>
-        <div ref="lrcboard" class="lrcboard" :class="{blur:isSearch&&!secondScreen,zoom:secondScreen&&alwaysLrc}" id="lrcboard">
+        <div ref="lrcboard" class="lrcboard" :class="{blur:isSearch&&!lrc.alwaysShow,zoom:secondScreen&&lrc.alwaysShow}" id="lrcboard">
             <ul ref="lrc" id="lrc">
                 <li v-if="!lrc.result" style=" line-height: 1000%;">ヽ(*´∀｀*)ノ.+ﾟおはよ～♪.+ﾟ</li>
                 <li :class="{active:$index==lrc.now-1}" v-for="(x,$index) in lrc.result">
@@ -25,7 +25,7 @@
             </div>
         </div>
 
-        <div class="searchBoard" :class="{active:isSearch,zoom:secondScreen&&alwaysLrc}">
+        <div class="searchBoard" :class="{active:isSearch,zoom:secondScreen&&lrc.alwaysShow}">
             <div class="closeSearch" v-if="isSearch" @click="closeSearch">
                 <i class="fa fa-arrow-left"></i>
             </div>
@@ -48,7 +48,7 @@
 
             <div id="searchResult" class="body">
                 <transition-group name="searchResultAnimation">
-                    <div v-if="search.songs" v-for="(x,$index) in search.songs" :key="'num_'+$index" class="result searchResultAnimation" :class="{small:secondScreen&&alwaysLrc}" :style="{transition:'all '+($index+1)*0.2+'s'}">
+                    <div v-if="search.songs" v-for="(x,$index) in search.songs" :key="'num_'+$index" class="result searchResultAnimation" :class="{small:secondScreen&&lrc.alwaysShow}" :style="{transition:'all '+($index+1)*0.2+'s'}">
                         <div class="coverImg">
                             <img width="100%" :src="x.album.picUrl">
                         </div>
@@ -110,7 +110,6 @@
                     nowPage:0,
                     totalPage:0
                 },
-                alwaysLrc:true,
                 secondScreen:false,
                 isPlay:false,
                 currentTime:{
@@ -126,7 +125,8 @@
                     tResult:"",//翻译的歌词
                     result:"",
                     now:0,
-                    dom:''
+                    dom:'',
+                    alwaysShow:false, //歌词始终显示
                 },
                 autoplay:false,
                 nowPlaying:'',
@@ -513,12 +513,12 @@
         -ms-transition-duration: .6s;
         -o-transition-duration: .6s;
         transition-duration: .6s;
-        transition-delay: .3s;
+        /*transition-delay: .3s;*/
     }
     .lrcboard.zoom{
         width:40%;
         font-size:18px;
-        border-right:solid 1px #666
+        /*border-right:solid 1px #666*/
     }
     .lrcboard.blur{
         -webkit-filter: blur(10px); /* Chrome, Opera */
@@ -602,7 +602,7 @@
         right:0;
     }
     .header{
-        position:relative;;;
+        position:relative;
         text-align: center;
         padding:5px 20px;
         transition: all .6s;
@@ -666,7 +666,7 @@
 
     }
     .body{
-        width:900px;
+        width:1000px;
         min-height:400px;
         height:100%;
         margin:30px auto;
@@ -677,7 +677,9 @@
         /*box-shadow: 1px 1px 1px 1px rgba(153,153,153,.2);
         background-color: #fff;*/
     }
-
+    .searchBoard.zoom .body{
+        width:900px;
+    }
     .results{
         position:relative;
         margin:10px auto;
