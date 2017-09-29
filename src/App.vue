@@ -1,8 +1,9 @@
 <template>
     <div id="app">
+        <leftnav></leftnav>
         <div id="background" :style="{backgroundImage:'url('+backgroundUrl+')'}"></div>
         <player :data="$data" ref="player" v-on:getLrc="getLrc"></player>
-        <div ref="lrcboard" class="lrcboard" :class="{blur:isSearch&&!lrc.alwaysShow,zoom:secondScreen&&lrc.alwaysShow}" id="lrcboard">
+        <div ref="lrcboard" class="lrcboard" :class="{blur:isSearch&&!lrc.alwaysShow,zoom:lrc.alwaysShow&&secondScreen}" id="lrcboard">
             <ul ref="lrc" id="lrc">
                 <li v-if="!lrc.result" style=" line-height: 1000%;">ヽ(*´∀｀*)ノ.+ﾟおはよ～♪.+ﾟ</li>
                 <li :class="{active:$index==lrc.now-1}" v-for="(x,$index) in lrc.result">
@@ -25,7 +26,7 @@
             </div>
         </div>
 
-        <div class="searchBoard" :class="{active:isSearch,zoom:secondScreen&&lrc.alwaysShow}">
+        <div class="searchBoard" :class="{active:isSearch,zoom:lrc.alwaysShow}">
             <div class="closeSearch" v-if="isSearch" @click="closeSearch">
                 <i class="fa fa-arrow-left"></i>
             </div>
@@ -91,13 +92,16 @@
     "use strict";
     import player from './components/playerController.vue';
     import commentMusic from './components/commentMusic.vue';
+    import leftnav from './components/menu.vue';
     export default {
         components:{
-            player
+            player,
+            leftnav
         },
         name: 'app',
         data:function () {
             return {
+                host:{ local:"" , doremi:"http://doremi.moe"}.local,
                 audio:document.createElement("audio"),
                 backgroundUrl:"./src/img/default.jpg",
                 randomList:[],
@@ -139,7 +143,7 @@
         mounted:function(){
             let that = this;
             setInterval(this.updateLrc,100);
-            this.$http.get("/playlist/detail?id=324617415",{})
+            this.$http.get(that.host + "/playlist/detail?id=324617415",{})
                 .then(function(data){
 
                     this.randomList = data.data.playlist.tracks;
@@ -189,7 +193,7 @@
                 this.search.doing=true;
                 this.search.songs={};
                 let that = this;
-                this.$http.get('/search?keywords='+this.search.input+"&offset="+this.search.nowPage*10+"&limit=10",{})
+                this.$http.get(that.host + '/search?keywords='+this.search.input+"&offset="+this.search.nowPage*10+"&limit=10",{})
                     .then(function(res){
                         that.search.result=res.data;
                         that.search.songs=res.data.result.songs;
@@ -214,7 +218,8 @@
             },
             getLrc:function(id){
                 id = id ||this.nowPlaying.id;
-                this.$http.get('/lyric?id='+id,{})
+                let that = this;
+                this.$http.get(that.host +'/lyric?id='+id,{})
                     .then(function(res){
                         if(res.data.code==200){
                             let lrc = res.data.lrc&&res.data.lrc.lyric;
@@ -499,7 +504,7 @@
     .lrcboard{
         position: absolute;
         top:0;
-        left:0;
+        right:0;
         width:100%;
         height:100%;
         overflow-y: auto;
@@ -590,16 +595,18 @@
         height:100%;
         width:100%;
         overflow: hidden;
-        /*transition:all .5s;*/
+        transition:all .5s;
         pointer-events: none;
+        opacity:0.8;
     }
     .searchBoard.active{
-        background-color: rgba(153,153,153,.2);
+        // background-color: rgba(153,153,153,.2);
         pointer-events: auto;
+        opacity:1;
     }
     .searchBoard.zoom{
         width:60%;
-        right:0;
+        left:0;
     }
     .header{
         position:relative;

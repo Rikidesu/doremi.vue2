@@ -1,11 +1,14 @@
 {
-  "name": "doremi.moe",
+  "name": "doremi",
+  "node-main": "app.js",
+  "main": "index.html",
   "description": "A Vue.js project",
   "version": "1.0.0",
   "author": "Rikiponzu* <l@riki.cc>",
   "private": true,
   "scripts": {
-    "dev": "cross-env NODE_ENV=development webpack-dev-server --open --inline --hot",
+    "dev": "cross-env NODE_ENV=production  webpack-dev-server --inline --hot",
+    "olddev": "cross-env NODE_ENV=development webpack-dev-server --open --inline --hot",
     "build": "cross-env NODE_ENV=production webpack --progress --hide-modules"
   },
   "dependencies": {
@@ -37,5 +40,19 @@
     "vue-template-compiler": "^2.1.0",
     "webpack": "^2.1.0-beta.25",
     "webpack-dev-server": "^2.1.0-beta.0"
-  }
+  },
+  "window": {
+    "always-on-top":true,
+    "title": "doremi",
+    "icon": "app.icns",
+    "toolbar": true,
+    "frame": false,
+    "width": 1300,
+    "height": 800,
+    "position": "mouse",
+    "min_width": 1200,
+    "min_height": 700,
+    "max_width": 1366,
+    "max_height": 900
+}
 }

@@ -142,7 +142,7 @@
                     that.data.coverUrl = ele.album&&ele.album.blurPicUrl||ele.al&&ele.al.picUrl||that.data.coverUrl;
                     that.data.backgroundUrl=that.data.coverUrl;
 
-                    this.$http.get('/music/url?id='+ele.id,{})
+                    this.$http.get(that.data.host +'/music/url?id='+ele.id,{})
                         .then(function(res){
 
                             if(!res.data.data[0].url){
