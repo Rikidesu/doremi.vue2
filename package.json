@@ -25,7 +25,8 @@
     "FontAwesome-webpack": "0.0.2",
     "babel-core": "^6.0.0",
     "babel-loader": "^6.0.0",
-    "babel-preset-es2015": "^6.0.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-stage-0": "^6.24.1",
     "cross-env": "^3.0.0",
     "css-loader": "^0.25.0",
     "file-loader": "^0.9.0",
@@ -42,7 +43,7 @@
     "webpack-dev-server": "^2.1.0-beta.0"
   },
   "window": {
-    "always-on-top":true,
+    "always-on-top": true,
     "title": "doremi",
     "icon": "app.icns",
     "toolbar": true,
@@ -54,5 +55,5 @@
     "min_height": 700,
     "max_width": 1366,
     "max_height": 900
-}
+  }
 }
