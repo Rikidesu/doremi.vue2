@@ -1,6 +1,6 @@
 <template>
     <div id="app">
-        <leftnav></leftnav>
+        <!-- <leftnav></leftnav> -->
         <div id="background" :style="{backgroundImage:'url('+backgroundUrl+')'}"></div>
         <player :data="$data" ref="player" v-on:getLrc="getLrc"></player>
         <div ref="lrcboard" class="lrcboard" :class="{blur:isSearch&&!lrc.alwaysShow,zoom:lrc.alwaysShow&&secondScreen}" id="lrcboard">
