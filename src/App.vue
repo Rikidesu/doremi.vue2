@@ -72,7 +72,7 @@
                                 <span>歌手：</span><span style="padding-right:5px" v-for="s in x.artists">{{s.name}}</span>
                             </span>
                             <span class="album" :title="x.album.name">
-                              专辑：album{{x.album.name}}
+                              专辑：{{x.album.name}}
                             </span>
                         </div>
 

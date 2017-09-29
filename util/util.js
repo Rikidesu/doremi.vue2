@@ -8,6 +8,7 @@ function createWebAPIRequest(host, path, method, data, cookie, callback, errorca
     method: method,
     path: path,
     headers: {
+      'X-Real-IP':'202.96.199.133',
       'Accept': '*/*',
       'Accept-Language': 'zh-CN,zh;q=0.8,gl;q=0.6,zh-TW;q=0.4',
       'Connection': 'keep-alive',
