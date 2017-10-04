@@ -157,6 +157,24 @@
                         })
                 }
             },
+            download:function(ele,url){
+                let that = this;
+                that.data.nowPlaying = ele;
+                if(url){
+                    window.open(url);
+                } else {
+
+                    this.$http.get(that.data.host +'/music/url?id='+ele.id,{})
+                        .then(function(res){
+
+                            let src = res.data.data[0].url;
+                            window.open(src)
+
+                        },function(res){
+                            console.info(res)
+                        })
+                }
+            },
         }
     }
 

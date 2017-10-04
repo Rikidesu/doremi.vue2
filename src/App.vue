@@ -63,6 +63,9 @@
                                 <i class="fa fa-star-o"></i>
                               </span>
                               <span>
+                                <i @click="download(x)" class="fa fa-download"></i>
+                              </span>
+                              <span>
                                 <i @click="setPlay(x)" class="fa fa-play"></i>
                               </span>
                             </span>
@@ -178,6 +181,9 @@
             },
             setPlay:function(ele,url){
                 this.$refs.player.setPlay(ele,url);
+            },
+            download:function(ele,url){
+                this.$refs.player.download(ele,url);
             },
             play:function(url){
                 this.$refs.player.play(url);
