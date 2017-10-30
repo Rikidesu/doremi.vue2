@@ -258,7 +258,7 @@
         color: #111;
         font-size: 20px;
         margin-left:-10px;
-        top: -25px;
+        top: -23px;
         left: 50%;
     }
     .controller{

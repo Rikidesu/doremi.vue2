@@ -34,9 +34,9 @@
                           <span>
                             <i class="fa fa-star-o"></i>
                           </span>
-                          <span>
+                          <!-- <span>
                             <i @click="download({ ele : x })" class="fa fa-download"></i>
-                          </span>
+                          </span> -->
                           <span>
                             <i @click="setPlay({ ele : x})" class="fa fa-play"></i>
                           </span>
