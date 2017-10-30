@@ -12,15 +12,25 @@
         //props:['data'],
         data:()=>{
             return{
-                musicId:''
             }
         },
         methods:{
 
-            openComment:function(){
 
+        },
+        computed:{
+            config(){
+                return this.$store.state.config
+            },
+            lrc(){
+                return this.$store.state.lrc
+            },
+            player(){
+                return this.$store.state.player
+            },
+            search(){
+                return this.$store.state.search
             }
-
         }
 
 

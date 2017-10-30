@@ -1,91 +1,23 @@
 <template>
     <div id="app">
         <!-- <leftnav></leftnav> -->
-        <div id="background" :style="{backgroundImage:'url('+backgroundUrl+')'}"></div>
-        <player :data="$data" ref="player" v-on:getLrc="getLrc"></player>
-        <div ref="lrcboard" class="lrcboard" :class="{blur:isSearch&&!lrc.alwaysShow,zoom:lrc.alwaysShow&&secondScreen}" id="lrcboard">
-            <ul ref="lrc" id="lrc">
-                <li v-if="!lrc.result" style=" line-height: 1000%;">ヽ(*´∀｀*)ノ.+ﾟおはよ～♪.+ﾟ</li>
-                <li :class="{active:$index==lrc.now-1}" v-for="(x,$index) in lrc.result">
-                    <div class="lrc">{{x[1] +" "}}</div>
-                    <div class="tLrc" v-if="lrc.tShow&&lrc.tResult">{{ lrc.tResult&&lrc.tResult[x[0]] }}</div>
-                </li>
-            </ul>
-        </div>
-
+        <div id="background" :style="{backgroundImage:'url('+player.backgroundUrl+')'}"></div>
+        <player></player>
+        <lrcBoard></lrcBoard>
         <div class="songInfo">
             <div class="songTitle">
-                <h3 title="歌名">{{nowPlaying.name}}</h3>
+                <h3 title="歌名">{{player.nowPlaying.name}}</h3>
             </div>
             <div class="songSinger">
                 <ul style="list-style: none">
-                    <li title="歌手" v-for="x in nowPlaying.ar||nowPlaying.artists">
+                    <li title="歌手" v-for="x in player.nowPlaying.ar||player.nowPlaying.artists">
                         {{x.name}}
                     </li>
                 </ul>
             </div>
         </div>
 
-        <div class="searchBoard" :class="{active:isSearch,zoom:lrc.alwaysShow}">
-            <div class="closeSearch" v-if="isSearch" @click="closeSearch">
-                <i class="fa fa-arrow-left"></i>
-            </div>
-            <div v-if="search.result" class="prevSearchPage" @click="prevSearchPage"><i class="fa  fa-chevron-left"></i></div>
-            <div v-if="search.result" class="nextSearchPage" @click="nextSearchPage"><i class="fa  fa-chevron-right"></i></div>
-            <div class="header" :class="{'active':isSearch}">
-                <h2 class="domain"> doremi.moe </h2>
-            </div>
-            <div class="search" :class="{'active':isSearch}">
-                <form id="search" @submit.prevent="doSearch(0)">
-                    <input @focus="search.show=true" autofocus="autofocus" @blur="search.show=false" name="text" v-model="search.input" class="searchInput" id="searchInput" placeholder="这里搜索噢～">
-                    <label for="searchInput"></label>
-
-                    <label for="closeSearch">
-                        <i class="fa fa-search"></i>
-                        <input id="closeSearch" type="submit" style="display: none" />
-                    </label>
-                </form>
-            </div>
-
-            <div id="searchResult" class="body">
-                <transition-group name="searchResultAnimation">
-                    <div v-if="search.songs" v-for="(x,$index) in search.songs" :key="'num_'+$index" class="result searchResultAnimation" :class="{small:secondScreen&&lrc.alwaysShow}" :style="{transition:'all '+($index+1)*0.2+'s'}">
-                        <div class="coverImg">
-                            <img width="100%" :src="x.album.picUrl">
-                        </div>
-                        <div class="resultTitle">
-                            <h3>{{x.name}}</h3>
-                            <span class="ctrl">
-                              <span>
-                                <i class="fa fa-heart-o"></i>
-                              </span>
-                              <span>
-                                <i class="fa fa-star-o"></i>
-                              </span>
-                              <span>
-                                <i @click="download(x)" class="fa fa-download"></i>
-                              </span>
-                              <span>
-                                <i @click="setPlay(x)" class="fa fa-play"></i>
-                              </span>
-                            </span>
-                        </div>
-                        <div class="resultDetail">
-                            <span class="singer">
-                                <span>歌手：</span><span style="padding-right:5px" v-for="s in x.artists">{{s.name}}</span>
-                            </span>
-                            <span class="album" :title="x.album.name">
-                              专辑：{{x.album.name}}
-                            </span>
-                        </div>
-
-                    </div>
-
-                    <div v-show="isSearch&&search.doing" :key="'searching'" class="result" style="text-align: center">搜索中...</div>
-
-                </transition-group>
-            </div>
-        </div>
+        <searchBoard></searchBoard>
 
 
     </div>
@@ -93,306 +25,225 @@
 
 <script>
     "use strict";
+    import {mapState} from 'vuex';
     import player from './components/playerController.vue';
     import commentMusic from './components/commentMusic.vue';
     import leftnav from './components/menu.vue';
+    import searchBoard from './components/searchBoard.vue';
+    import lrcBoard from './components/lrcBoard.vue';
     export default {
         components:{
             player,
-            leftnav
+            leftnav,
+            searchBoard,
+            lrcBoard
         },
         name: 'app',
         data:function () {
             return {
-                host:{ local:"" , doremi:"http://doremi.moe"}.local,
-                audio:document.createElement("audio"),
-                backgroundUrl:"./src/img/default.jpg",
-                randomList:[],
-                search:{
-                    show:false,
-                    result:"",
-                    songs:{},
-                    input:"",
-                    doing:false,
-                    nowPage:0,
-                    totalPage:0
-                },
-                secondScreen:false,
-                isPlay:false,
-                currentTime:{
-                    original:0,
-                    real:"00:00"
-                },
-                duration:{
-                    original:0,
-                    real:"00:00"
-                },
-                lrc:{
-                    tShow:true,//是否显示翻译
-                    tResult:"",//翻译的歌词
-                    result:"",
-                    now:0,
-                    dom:'',
-                    alwaysShow:false, //歌词始终显示
-                },
-                autoplay:false,
-                nowPlaying:'',
-                mp3Url:"./src/demo.mp3",
-                radio: '1',
-                coverUrl:"./src/img/default.jpg",
-                items: [1,2,3,4,5,6,7,8,9]
+
             }
         },
         mounted:function(){
-            let that = this;
-            setInterval(this.updateLrc,100);
-            this.$http.get(that.host + "/playlist/detail?id=324617415",{})
-                .then(function(data){
 
-                    this.randomList = data.data.playlist.tracks;
-
-                },function(data){
-
-                });
-            this.audio.addEventListener("play",function(data){
-            });
-            this.audio.addEventListener("ended",that.playNext);
         },
-        computed:{
-            isSearch:function(){
-                return this.secondScreen = this.search.show||this.search.input||this.search.result;
-            }
-        },
+        computed:mapState({
+            // config: state => state.config,
+            player: state => state.player,
+            // search: state => state.search,
+            // lrc: state =>state.lrc
+        }),
         watch:{
-            audio:function(){
-                this.currentTime.original=this.audio.currentTime;
-                this.currentTime.real = parseInt(this.audio.currentTime/60)+this.audio.currentTime%60;
-                this.duration.original=this.audio.duration;
-                this.duration.real = ((this.audio.duration/60)<10?"0":"")+parseInt(this.audio.duration/60)+this.audio.duration%60;
-            }
         },
-        methods:{
-            closeSearch:function(){
-                this.search.show=false;
-                this.search.input="";
-                this.search.result='';
-                this.search.songs='';
-                this.secondScreen=false;
-            },
-            setPlay:function(ele,url){
-                this.$refs.player.setPlay(ele,url);
-            },
-            download:function(ele,url){
-                this.$refs.player.download(ele,url);
-            },
-            play:function(url){
-                this.$refs.player.play(url);
-            },
-            pause:function(){
-                this.$refs.player.pause();
-            },
-            playNext:function(){
-                this.$refs.player.playNext();
-            },
-            doSearch:function(page){
-                this.search.nowPage = page||0;
-                this.search.doing=true;
-                this.search.songs={};
-                let that = this;
-                this.$http.get(that.host + '/search?keywords='+this.search.input+"&offset="+this.search.nowPage*10+"&limit=10",{})
-                    .then(function(res){
-                        that.search.result=res.data;
-                        that.search.songs=res.data.result.songs;
-                        that.search.doing=false;
-                    },function(res){
-                        console.info("error");
-                        that.search.doing=false;
-                    })
+        // methods:{
 
-            },
-            prevSearchPage:function(){
+        //     setPlay:function(ele,url){
+        //         this.$refs.player.setPlay(ele,url);
+        //     },
+        //     download:function(ele,url){
+        //         this.$refs.player.download(ele,url);
+        //     },
+        //     play:function(url){
+        //         this.$refs.player.play(url);
+        //     },
+        //     pause:function(){
+        //         this.$refs.player.pause();
+        //     },
+        //     playNext:function(){
+        //         this.$refs.player.playNext();
+        //     },
 
-                if(this.search.nowPage>0){
-                    this.doSearch(--this.search.nowPage);
-                }
-
-            },
-            nextSearchPage:function(){
-                this.doSearch(++this.search.nowPage);
-
-
-            },
-            getLrc:function(id){
-                id = id ||this.nowPlaying.id;
-                let that = this;
-                this.$http.get(that.host +'/lyric?id='+id,{})
-                    .then(function(res){
-                        if(res.data.code==200){
-                            let lrc = res.data.lrc&&res.data.lrc.lyric;
-                            let tLrc = res.data.tlyric&&res.data.tlyric.lyric;
-                            this.lrc.result = this.parseLrc(lrc);
-                            tLrc = this.parseLrc(tLrc) || "";
-                            this.parseTLrc(tLrc&&tLrc);
-                        }
-                    },function(res){
-                        console.log('error')
-                    })
-            },
-            parseTLrc:function(lrc){
-                let tLrc = {};
-                lrc.forEach(function(el,id){
-                    tLrc[el[0]] = el[1];
-                });
-                this.lrc.tResult = tLrc;
-            },
-            parseLrc:function(text){
-                try{
-                    let lines = text.split('\n'),
-                        pattern = /\[\d{2}:\d{2}.\d{2}\]/g,
-                        pattern2 = /\[\d{2}:\d{2}.\d{3}\]/g,
-                        result = [];
-                    result.splice(0,result.length);
-                    let max_lrc_row = 0;
+        //     getLrc:function(id){
+        //         id = id ||this.nowPlaying.id;
+        //         let that = this;
+        //         this.$http.get(that.host +'/lyric?id='+id,{})
+        //             .then(function(res){
+        //                 if(res.data.code==200){
+        //                     let lrc = res.data.lrc&&res.data.lrc.lyric;
+        //                     let tLrc = res.data.tlyric&&res.data.tlyric.lyric;
+        //                     this.lrc.result = this.parseLrc(lrc);
+        //                     tLrc = this.parseLrc(tLrc) || "";
+        //                     this.parseTLrc(tLrc&&tLrc);
+        //                 }
+        //             },function(res){
+        //                 console.log('error')
+        //             })
+        //     },
+        //     parseTLrc:function(lrc){
+        //         let tLrc = {};
+        //         lrc.forEach(function(el,id){
+        //             tLrc[el[0]] = el[1];
+        //         });
+        //         this.lrc.tResult = tLrc;
+        //     },
+        //     parseLrc:function(text){
+        //         try{
+        //             let lines = text.split('\n'),
+        //                 pattern = /\[\d{2}:\d{2}.\d{2}\]/g,
+        //                 pattern2 = /\[\d{2}:\d{2}.\d{3}\]/g,
+        //                 result = [];
+        //             result.splice(0,result.length);
+        //             let max_lrc_row = 0;
 
 
-                    for(let i=0;i<=lines.length;i++){
-                        if (pattern2.test(lines[i])){
-                            lines[i] = lines[i].substring(0, 9) + lines[i].substring(10);
-                            i--;
-                        }
-                    }
-                    while (!pattern.test(lines[0])) {
-                        lines = lines.slice(1);
-                        max_lrc_row += 1;
-                        if (max_lrc_row > 10000) {
-                            console.log("歌词超过10000！！");
-                            break;
-                        }
-                    }
-                    lines[lines.length - 1].length === 0 && lines.pop();
+        //             for(let i=0;i<=lines.length;i++){
+        //                 if (pattern2.test(lines[i])){
+        //                     lines[i] = lines[i].substring(0, 9) + lines[i].substring(10);
+        //                     i--;
+        //                 }
+        //             }
+        //             while (!pattern.test(lines[0])) {
+        //                 lines = lines.slice(1);
+        //                 max_lrc_row += 1;
+        //                 if (max_lrc_row > 10000) {
+        //                     console.log("歌词超过10000！！");
+        //                     break;
+        //                 }
+        //             }
+        //             lines[lines.length - 1].length === 0 && lines.pop();
 
-                    for(let i=lines.length-1;i!=1;i--){
+        //             for(let i=lines.length-1;i!=1;i--){
 
-                        if(!lines[i][1]){
+        //                 if(!lines[i][1]){
 
-                            lines.pop();
+        //                     lines.pop();
 
-                        }
-                        else {break;}
+        //                 }
+        //                 else {break;}
 
-                    }
+        //             }
 
-                    lines.forEach(function(v  , i  , a  ) {
-                        pattern.lastIndex=0;
-                        pattern2.lastIndex=0;
-                        if (pattern.test(lines[i])||pattern2.test(lines[i])){
-                            let time = v.match(pattern),
-                                value = v.replace(pattern, '');
-                            time.forEach(function (v1, i1, a1) {
-                                let t = v1.slice(1, -1).split(':');
-                                result.push([parseInt(t[0], 10) * 60 + parseFloat(t[1]), value]);
-                            });
-                        }
-                    });
+        //             lines.forEach(function(v  , i  , a  ) {
+        //                 pattern.lastIndex=0;
+        //                 pattern2.lastIndex=0;
+        //                 if (pattern.test(lines[i])||pattern2.test(lines[i])){
+        //                     let time = v.match(pattern),
+        //                         value = v.replace(pattern, '');
+        //                     time.forEach(function (v1, i1, a1) {
+        //                         let t = v1.slice(1, -1).split(':');
+        //                         result.push([parseInt(t[0], 10) * 60 + parseFloat(t[1]), value]);
+        //                     });
+        //                 }
+        //             });
 
-                    result.sort(function(a, b) {
-                        return a[0] - b[0];
-                    });
+        //             result.sort(function(a, b) {
+        //                 return a[0] - b[0];
+        //             });
 
 
-                    let riki = [];
-                    let desu = [];
-                    let rikidesu = [];
-                    riki.splice(0,riki.length);
+        //             let riki = [];
+        //             let desu = [];
+        //             let rikidesu = [];
+        //             riki.splice(0,riki.length);
 
-                    result.forEach(function(v  , i  , a ){
-                        let Static = /\[static\].*\[\/static\]/g,
-                            effect = /\[effect\].*\[\/effect\]/g,
-                            godlrc = /\[\{.*\}\]/g;
-                        riki[i] = [];
-                        desu[i] = [];
-                        a[i][3] = [];
-                        a[i][3][0] = 0;
+        //             result.forEach(function(v  , i  , a ){
+        //                 let Static = /\[static\].*\[\/static\]/g,
+        //                     effect = /\[effect\].*\[\/effect\]/g,
+        //                     godlrc = /\[\{.*\}\]/g;
+        //                 riki[i] = [];
+        //                 desu[i] = [];
+        //                 a[i][3] = [];
+        //                 a[i][3][0] = 0;
 
-                        if(godlrc.test(v)){
+        //                 if(godlrc.test(v)){
 
-                            if(Static.test(v)){
-                                a[i][3] = [];
-                                a[i][2] = a[i][1].match(Static);
-                                a[i][2] = String(a[i][2]).slice(+8,-9);
-                                a[i][1] = a[i][1].replace(Static,"");
+        //                     if(Static.test(v)){
+        //                         a[i][3] = [];
+        //                         a[i][2] = a[i][1].match(Static);
+        //                         a[i][2] = String(a[i][2]).slice(+8,-9);
+        //                         a[i][1] = a[i][1].replace(Static,"");
 
-                                riki[i] = String(a[i][2]).split(";");
+        //                         riki[i] = String(a[i][2]).split(";");
 
-                                for(let j=0;j<riki[i].length;j++){
+        //                         for(let j=0;j<riki[i].length;j++){
 
-                                    a[i][3][j]= String(riki[i][j]).split(":");
+        //                             a[i][3][j]= String(riki[i][j]).split(":");
 
-                                }
+        //                         }
 
 
 
-                            }
+        //                     }
 
-                            a[i][1] = a[i][1].replace(godlrc,"");
-                        }
-                    });
-                    //this.lrc.result = result;
-                    result.unshift([0,'']);
-                    result.push([99999,''],[99999,'']);
-                    return result
-                }catch(e){
+        //                     a[i][1] = a[i][1].replace(godlrc,"");
+        //                 }
+        //             });
+        //             //this.lrc.result = result;
+        //             result.unshift([0,'']);
+        //             result.push([99999,''],[99999,'']);
+        //             return result
+        //         }catch(e){
 
-                    console.info(e)
+        //             console.info(e)
 
-                }
-            },
-            updateLrc:function(){
-                let that = this;
-                this.isPlay = !this.audio.paused;
-                this.currentTime.original=this.audio.currentTime;
-                this.currentTime.real = ((this.audio.currentTime/60)<10?"0":"")+parseInt(this.audio.currentTime/60)+":"+(parseInt(this.audio.currentTime%60)<10?"0":"")+parseInt(this.audio.currentTime%60);
-                this.duration.original=this.audio.duration;
-                this.duration.real = ((this.audio.duration/60)<10?"0":"")+parseInt(this.audio.duration/60)+":"+(parseInt(this.audio.duration%60)<10?"0":"")+parseInt(this.audio.duration%60);
-                if(this.lrc.result){
+        //         }
+        //     },
+        //     updateLrc:function(){
+        //         let that = this;
+        //         this.isPlay = !this.audio.paused;
+        //         this.currentTime.original=this.audio.currentTime;
+        //         this.currentTime.real = ((this.audio.currentTime/60)<10?"0":"")+parseInt(this.audio.currentTime/60)+":"+(parseInt(this.audio.currentTime%60)<10?"0":"")+parseInt(this.audio.currentTime%60);
+        //         this.duration.original=this.audio.duration;
+        //         this.duration.real = ((this.audio.duration/60)<10?"0":"")+parseInt(this.audio.duration/60)+":"+(parseInt(this.audio.duration%60)<10?"0":"")+parseInt(this.audio.duration%60);
+        //         if(this.lrc.result){
 
-                    for(let i=this.lrc.now;i<this.lrc.result.length;i++){
-                        if(this.audio.currentTime>=this.lrc.result[i][0]){
-                            this.lrc.now=i+1;
-                            try{
-                            let el = this.$refs.lrcboard;
-                            let from = this.$refs.lrcboard.scrollTop;
-                            let toEl = this.$refs.lrc.querySelector(".active");
-                            let to = toEl.offsetTop-this.$refs.lrcboard.clientHeight/2+toEl.clientHeight*3;
-                            let dur = (to-from)/30;
-                            let scrollTo = function(){
-                                from+=dur;
-                                el.scrollTop = from;
-                                if(dur>0&&from<to){
-                                    requestAnimationFrame(scrollTo);
-                                }else if(dur<0&&from>to){
-                                    requestAnimationFrame(scrollTo);
-                                }
-                            };
+        //             for(let i=this.lrc.now;i<this.lrc.result.length;i++){
+        //                 if(this.audio.currentTime>=this.lrc.result[i][0]){
+        //                     this.lrc.now=i+1;
+        //                     try{
+        //                     let el = this.$refs.lrcboard;
+        //                     let from = this.$refs.lrcboard.scrollTop;
+        //                     let toEl = this.$refs.lrc.querySelector(".active");
+        //                     let to = toEl.offsetTop-this.$refs.lrcboard.clientHeight/2+toEl.clientHeight*3;
+        //                     let dur = (to-from)/30;
+        //                     let scrollTo = function(){
+        //                         from+=dur;
+        //                         el.scrollTop = from;
+        //                         if(dur>0&&from<to){
+        //                             requestAnimationFrame(scrollTo);
+        //                         }else if(dur<0&&from>to){
+        //                             requestAnimationFrame(scrollTo);
+        //                         }
+        //                     };
 
-                            requestAnimationFrame(scrollTo);
+        //                     requestAnimationFrame(scrollTo);
 
-                            //this.$refs.lrcboard.scrollTop = this.$refs.lrc.querySelector(".active").offsetTop;
+        //                     //this.$refs.lrcboard.scrollTop = this.$refs.lrc.querySelector(".active").offsetTop;
 
 
-                            }catch(e){
+        //                     }catch(e){
 
-                            }
+        //                     }
 
-                            break;
-                        } else if(this.audio.currentTime<=0.5){
-                            that.lrc.now=0;
-                            that.$refs.lrcboard.scrollTop=0;
-                        }
-                    }
-                }
-            }
-        }
+        //                     break;
+        //                 } else if(this.audio.currentTime<=0.5){
+        //                     that.lrc.now=0;
+        //                     that.$refs.lrcboard.scrollTop=0;
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
     }
 </script>
 

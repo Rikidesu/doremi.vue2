@@ -1,17 +1,17 @@
 <template>
 
     <div class="side">
-        <div class="progress" :style="{transform:'rotate('+(data.audio.currentTime/data.audio.duration)*360+'deg)'}">
-            <i :style="{transform:'rotate(-'+(data.audio.currentTime/data.audio.duration)*360+'deg)'}" class="fa fa-music"></i>
+        <div class="progress" :style="{transform:'rotate('+(player.currentTime.original/player.audio.duration)*360+'deg)'}">
+            <i :style="{transform:'rotate(-'+(player.currentTime.original/player.audio.duration)*360+'deg)'}" class="fa fa-music"></i>
         </div>
         <!-- 这里做成3D的， 反面可以翻过来，进行下载、评星等操作-->
 
 
 
-        <div class="cover-container" :class="{'rotate-back':state.rotate}">
+        <div class="cover-container" :class="{'rotate-back':player.state.rotate}">
             <div class="cover">
 
-                <div class="playingImg" :style="{backgroundImage: 'url('+data.coverUrl+')'}" ></div>
+                <div class="playingImg" :style="{backgroundImage: 'url('+player.coverUrl+')'}" ></div>
 
                 <div class="controller">
 
@@ -19,16 +19,16 @@
 
                     </div>
 
-                    <div :title="data.isPlay?'暂停':'播放'" @click="data.isPlay?pause():play()" class="play">
-                        <i class="fa" :class="{'fa-pause':data.isPlay,'fa-play':!data.isPlay}"></i>
+                    <div :title="player.isPlay?'暂停':'播放'" @click="player.isPlay?pause():play()" class="play">
+                        <i class="fa" :class="{'fa-pause':player.isPlay,'fa-play':!player.isPlay}"></i>
                     </div>
                     <div class="time">
-                        <div>{{data.currentTime.real}}</div>
-                        <div>{{data.duration.real}}</div>
+                        <div>{{player.currentTime.real}}</div>
+                        <div>{{player.duration.real}}</div>
                     </div>
                     <div class="other">
                         <i title="添加到最爱" class="fa fa-heart"></i>
-                        <i title="设置" @click="state.rotate=!state.rotate" class="fa fa-gear"></i>
+                        <i title="设置" @click="player.state.rotate=!player.state.rotate" class="fa fa-gear"></i>
                         <i title="下一首" @click="playNext()" class="fa fa-forward"></i>
                     </div>
 
@@ -37,37 +37,37 @@
 
             </div>
             <div class="cover cover-back">
-                <div class="playingImg" :style="{backgroundImage: 'url('+data.coverUrl+')'}" ></div>
+                <div class="playingImg" :style="{backgroundImage: 'url('+player.coverUrl+')'}" ></div>
 
 
                 <div class="controller">
 
-                    <div @click="state.rotate=!state.rotate" class="back-ctrl-left">
+                    <div @click="player.state.rotate=!player.state.rotate" class="back-ctrl-left">
                         <i class="fa fa-arrow-left rotate-button"></i>
                     </div>
                     <div class="back-ctrl-right">
                         <ul>
                             <li>
                                 <label class="pointer" for="tLrcShow">
-                                    <input style="display: none" id="tLrcShow" type="checkbox" v-model="data.lrc.tShow" />
-                                    <i v-if="data.lrc.tShow" class="fa fa-check-square-o"></i>
-                                    <i v-if="!data.lrc.tShow" class="fa fa-square-o"></i>
+                                    <input style="display: none" id="tLrcShow" type="checkbox" v-model="lrc.tShow" />
+                                    <i v-if="lrc.tShow" class="fa fa-check-square-o"></i>
+                                    <i v-if="!lrc.tShow" class="fa fa-square-o"></i>
                                     <span>显示翻译</span>
                                 </label>
                             </li>
                             <li>
                                 <label class="pointer" for="tLrcShowTop">
-                                    <input style="display: none" id="tLrcShowTop" type="checkbox" v-model="data.lrc.alwaysShow" />
-                                    <i v-if="data.lrc.alwaysShow" class="fa fa-check-square-o"></i>
-                                    <i v-if="!data.lrc.alwaysShow" class="fa fa-square-o"></i>
+                                    <input style="display: none" id="tLrcShowTop" type="checkbox" v-model="lrc.alwaysShow" />
+                                    <i v-if="lrc.alwaysShow" class="fa fa-check-square-o"></i>
+                                    <i v-if="!lrc.alwaysShow" class="fa fa-square-o"></i>
                                     <span>歌词始终显示</span>
                                 </label>
                             </li>
                             <li>
-                                <i v-if="data.audio.volume==0" class="fa fa-volume-off"></i>
-                                <i v-if="data.audio.volume>0&&data.audio.volume<=0.6" class="fa fa-volume-down"></i>
-                                <i v-if="data.audio.volume>0.6" class="fa fa-volume-up"></i>
-                                <input style="width:70px" type="range" step="any" v-model="data.audio.volume" min="0" max="1" />
+                                <i v-if="player.audio.volume==0" class="fa fa-volume-off"></i>
+                                <i v-if="player.audio.volume>0&&player.audio.volume<=0.6" class="fa fa-volume-down"></i>
+                                <i v-if="player.audio.volume>0.6" class="fa fa-volume-up"></i>
+                                <input style="width:70px" type="range" step="any" v-model="player.audio.volume" min="0" max="1" />
                             </li>
                             <li><i class="fa fa-list"></i> 播放列表 </li>
                             <li><i class="fa fa-user-circle-o"></i> 登陆 </li>
@@ -101,81 +101,44 @@
 </template>
 
 <script>
-
     "use strict";
+    import Vuex , { mapState , mapActions } from 'vuex';
     export default{
-        name:"player",
-        props: ['data'],
-        data:()=>{
-            return {
-                data:this.data,
-                state:{
-                    rotate:false
-                }
+        // name:"player",
+        mounted:function(){
+            let that = this;
+            setInterval(function(){
+                that.updateTime({$refs:that.$refs});
+            },that.config.updateDelay||200);
+            this.$http.get(that.config.host + "/playlist/detail?id=324617415",{})
+                .then(function(data){
 
-            }
+                    that.player.randomList = data.data.playlist.tracks;
+
+                },function(data){
+
+                });
+            this.player.audio.addEventListener("play",function(data){
+            });
+            this.player.audio.addEventListener("ended",that.playNext);
         },
-        methods:{
-            play:function(url){
-                !this.data.isPlay&&this.data.audio.play();
-                this.data.isPlay=true;
+        computed:mapState({
+            config(){
+                return this.$store.state.config
             },
-            pause:function(){
-                this.data.isPlay&&this.data.audio.pause();
-                this.data.isPlay=false;
+            lrc(){
+                return this.$store.state.lrc
             },
-            playNext:function(){
-                this.playRandom();
+            player(){
+                return this.$store.state.player
             },
-            playRandom:function(){
-                let that = this;
-                this.setPlay(that.data.randomList[Math.floor(Math.random()*(that.data.randomList.length))]);
-            },
-            setPlay:function(ele,url){
-                this.pause();
-                let that = this;
-                that.data.nowPlaying = ele;
-                if(url){
-                    this.audio.src=url;
-                } else {
-
-                    that.data.coverUrl = ele.album&&ele.album.blurPicUrl||ele.al&&ele.al.picUrl||that.data.coverUrl;
-                    that.data.backgroundUrl=that.data.coverUrl;
-
-                    this.$http.get(that.data.host +'/music/url?id='+ele.id,{})
-                        .then(function(res){
-
-                            if(!res.data.data[0].url){
-                                return that.playNext();
-                            }
-                            that.data.audio.src = res.data.data[0].url;
-                            !that.data.isPlay&&that.play();
-                            this.$emit('getLrc');
-                            that.data.lrc.now = 0 ;
-                        },function(res){
-                            console.info(res)
-                        })
-                }
-            },
-            download:function(ele,url){
-                let that = this;
-                that.data.nowPlaying = ele;
-                if(url){
-                    window.open(url);
-                } else {
-
-                    this.$http.get(that.data.host +'/music/url?id='+ele.id,{})
-                        .then(function(res){
-
-                            let src = res.data.data[0].url;
-                            window.open(src)
-
-                        },function(res){
-                            console.info(res)
-                        })
-                }
-            },
-        }
+            search(){
+                return this.$store.state.search
+            }
+        }),
+        methods:mapActions(
+            ['setPlay','play','pause','playNext','playRandom','updateTime']
+        )
     }
 
 </script>
@@ -295,7 +258,7 @@
         color: #111;
         font-size: 20px;
         margin-left:-10px;
-        top: -20px;
+        top: -25px;
         left: 50%;
     }
     .controller{
