@@ -2,7 +2,7 @@
 * @Author: Rikiponzu*
 * @Date:   2017-10-27 14:34:58
 * @Last Modified by:   Rikiponzu*
-* @Last Modified time: 2017-10-30 15:26:45
+* @Last Modified time: 2017-11-02 17:12:06
 */
 /*
 * @Author: Rikiponzu*
@@ -15,7 +15,8 @@ export default {
         host:{ local:"" , doremi:"http://doremi.moe" , dev:"http://127.0.0.1:3000"}.dev,
         secondScreen:false,
         items: [1,2,3,4,5,6,7,8,9],
-        updateDelay:200
+        updateDelay:2000,
+        alwaysShow:false
     },
     mutations:{
 

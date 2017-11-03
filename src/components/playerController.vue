@@ -57,9 +57,9 @@
                             </li>
                             <li>
                                 <label class="pointer" for="tLrcShowTop">
-                                    <input style="display: none" id="tLrcShowTop" type="checkbox" v-model="lrc.alwaysShow" />
-                                    <i v-if="lrc.alwaysShow" class="fa fa-check-square-o"></i>
-                                    <i v-if="!lrc.alwaysShow" class="fa fa-square-o"></i>
+                                    <input style="display: none" id="tLrcShowTop" type="checkbox" v-model="config.alwaysShow" />
+                                    <i v-if="config.alwaysShow" class="fa fa-check-square-o"></i>
+                                    <i v-if="!config.alwaysShow" class="fa fa-square-o"></i>
                                     <span>歌词始终显示</span>
                                 </label>
                             </li>

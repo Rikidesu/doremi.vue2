@@ -2,7 +2,7 @@
 * @Author: Rikiponzu*
 * @Date:   2017-10-27 14:26:42
 * @Last Modified by:   Rikiponzu*
-* @Last Modified time: 2017-10-30 15:19:53
+* @Last Modified time: 2017-11-02 16:59:44
 */
 "use strict";
 import Vue from "vue";
@@ -25,12 +25,13 @@ export default {
             this.state.config.secondScreen=false;
         },
         _prevSearchPage(){
-            if(this.search.nowPage>0){
-                this.doSearch(--this.state.search.nowPage);
+            if(this.state.search.nowPage>0){
+                this.dispatch("doSearch" , { page : --this.state.search.nowPage })
             }
         },
         _nextSearchPage(){
-            this.doSearch(++this.state.search.nowPage);
+                this.dispatch("doSearch" , { page : ++this.state.search.nowPage })
+
         }
     },
     actions:{

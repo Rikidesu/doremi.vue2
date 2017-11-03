@@ -7,8 +7,10 @@ require("./default.css");
 require("./jquery.js");
 import App from './App.vue';
 import vueResource from 'vue-resource';
+import router from './routes.js';
 
 Vue.use(vueResource);
+
 // Vue.use(Vuex)
 
 
@@ -16,6 +18,7 @@ Vue.use(vueResource);
 new Vue({
   el: '#app',
   store,
+  router,
   render: h => h(App)
 });
 
