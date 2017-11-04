@@ -14,7 +14,12 @@
                 </li>
                 <li class="menu-nav-li">
                     <div class="menu-nav-li-bg">
-                        <router-link to="/foo">音乐库</router-link>
+                        <router-link to="/prePlayingList">播放列表</router-link>
+                    </div>
+                </li>
+                <li class="menu-nav-li">
+                    <div class="menu-nav-li-bg">
+                        <router-link to="/foo">歌单</router-link>
                     </div>
                 </li>
                 <li class="menu-nav-li">

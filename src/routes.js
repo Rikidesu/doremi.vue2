@@ -2,7 +2,7 @@
 * @Author: Rikiponzu*
 * @Date:   2017-11-01 11:43:29
 * @Last Modified by:   Rikiponzu*
-* @Last Modified time: 2017-11-02 16:29:27
+* @Last Modified time: 2017-11-04 16:43:17
 */
 
 
@@ -16,7 +16,9 @@ Vue.use(VueRouter);
 // 可以从其他文件 import 进来
 const Foo = { template: '<div>foo</div>' }
 const Bar = { template: '<div>bar</div>' }
+
 import searchBoard from './components/searchBoard.vue';
+import prePlayingList from './components/prePlayingList.vue';
 
 // 2. 定义路由
 // 每个路由应该映射一个组件。 其中"component" 可以是
@@ -26,6 +28,7 @@ import searchBoard from './components/searchBoard.vue';
 const routes = [
   { path: '/', component: searchBoard },
   { path: '/foo', component: Foo },
+  { path: '/prePlayingList', component: prePlayingList },
   { path: '/bar', component: Bar }
 ]
 

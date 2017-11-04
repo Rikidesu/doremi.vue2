@@ -122,7 +122,7 @@
         height:100%;
         width:100%;
         overflow: hidden;
-        transition:all .5s;
+        transition:all .3s;
         pointer-events:none;
         // opacity:0;
     }

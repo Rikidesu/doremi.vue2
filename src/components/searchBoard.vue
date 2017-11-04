@@ -3,8 +3,6 @@
         <div class="closeSearch" v-if="isSearch" @click="closeSearch">
             <i class="fa fa-arrow-left"></i>
         </div>
-        <div v-if="search.result" class="prevSearchPage" @click="prevSearchPage"><i class="fa  fa-chevron-left"></i></div>
-        <div v-if="search.result" class="nextSearchPage" @click="nextSearchPage"><i class="fa  fa-chevron-right"></i></div>
         <div class="header" :class="{'active':isSearch}">
             <h2 class="domain"> doremi.moe </h2>
         </div>
@@ -20,7 +18,7 @@
             </form>
         </div>
         <div id="searchResult" class="body">
-            <transition-group name="searchResultAnimation">
+            <transition-group name="searchResultAnimation" tag="div" style="padding-bottom:350px;position:relative">
                 <div v-if="search.songs" v-for="(x,$index) in search.songs" :key="'num_'+$index" class="result searchResultAnimation" :class="{small:config.secondScreen&&config.alwaysShow}" :style="{transition:'all '+($index+1)*0.2+'s'}">
                     <div class="coverImg">
                         <img width="100%" :src="x.album.picUrl">
@@ -57,6 +55,8 @@
 
             </transition-group>
         </div>
+        <div v-if="search.result" class="prevSearchPage" @click="prevSearchPage"><i class="fa  fa-chevron-left"></i></div>
+        <div v-if="search.result" class="nextSearchPage" @click="nextSearchPage"><i class="fa  fa-chevron-right"></i></div>
     </div>
 </template>
 
@@ -207,6 +207,7 @@
         min-height:400px;
         height:100%;
         margin:30px auto;
+        padding-bottom: 300px;
         border-radius:4px;
         border:solid 1px transparent;
         right:0;

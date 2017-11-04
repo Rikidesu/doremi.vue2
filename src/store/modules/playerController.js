@@ -2,7 +2,7 @@
 * @Author: Rikiponzu*
 * @Date:   2017-10-27 10:15:59
 * @Last Modified by:   Rikiponzu*
-* @Last Modified time: 2017-10-30 15:26:18
+* @Last Modified time: 2017-11-04 17:55:07
 */
 
 "use strict";
@@ -45,12 +45,13 @@ export default {
         _playRandom:function( state ){
             this.state.player.setPlay(this.state.player.randomList[Math.floor(Math.random()*(this.state.player.randomList.length))]);
         },
-        _setPlay:function( state , { res , url }){
+        _setPlay:function( state , { res , ele }){
             if(!res.data.data[0].url){
                 this.dispatch("playNext");
             };
             this.state.player.audio.src = res.data.data[0].url;
             !this.state.player.isPlay && this.commit("_play");
+            this.dispatch( "addToHistoryPlayingList", { ele } );
             // this.$emit('getLrc');    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             this.dispatch("getLrc");
         },
@@ -61,6 +62,9 @@ export default {
             this.state.player.duration.original=this.state.player.audio.duration;
             this.state.player.duration.real = this.state.player.audio.duration ? ((this.state.player.audio.duration/60)<10?"0":"")+parseInt(this.state.player.audio.duration/60)+":"+(parseInt(this.state.player.audio.duration%60)<10?"0":"")+parseInt(this.state.player.audio.duration%60) : "(>^ω^<)喵";
 
+        },
+        _getRandomList:function( {} , { list } ){
+            this.state.player.randomList = list;
         }
     },
     actions:{
@@ -71,7 +75,16 @@ export default {
             commit("_pause");
         },
         playNext({ commit , state , dispatch} ) {
-            let a = dispatch("playRandom");
+
+            if(this.state.prePlayingList.list.length>0){
+                dispatch("setPlay" , { ele:this.state.prePlayingList.list[0] } ).then(function(){
+                    dispatch("removeFromPreplayingList" , { index:0 } );
+                });
+            }else{
+                dispatch("playRandom");
+            }
+
+            // let a = dispatch("playRandom");
         },
         playRandom( { commit , state , dispatch} ) {
             dispatch("setPlay" , { ele : this.state.player.randomList[Math.floor(Math.random()*(this.state.player.randomList.length))] });
@@ -89,7 +102,7 @@ export default {
                 Vue.http.get(this.state.config.host +'/music/url?id='+ele.id,{})
                     .then(function(res){
 
-                        commit("_setPlay" , { res } );
+                        commit("_setPlay" , { res , ele } );
 
                     },function(res){
                         console.info(res)
@@ -119,9 +132,24 @@ export default {
                         console.info(res)
                     })
             }
+        },
+        getRandomList( { commit }){
+            let that = this;
+            Vue.http.get(that.state.config.host + "/playlist/detail?id=324617415",{})
+                .then(function(data){
+
+                    commit("_getRandomList" , { list:data.data.playlist.tracks })
+
+
+                },function(data){
+
+                });
         }
     },
     getters:{
+        // randomList(){
+        //     return this.state.player.randomList;
+        // }
         // audio(){
         //     console.log(this);
         //     this.player.currentTime.original=this.player.audio.currentTime;

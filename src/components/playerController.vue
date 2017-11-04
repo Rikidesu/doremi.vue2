@@ -1,6 +1,6 @@
 <template>
 
-    <div class="side">
+    <div class="side player">
         <div class="progress" :style="{transform:'rotate('+(player.currentTime.original/player.audio.duration)*360+'deg)'}">
             <i :style="{transform:'rotate(-'+(player.currentTime.original/player.audio.duration)*360+'deg)'}" class="fa fa-music"></i>
         </div>
@@ -110,14 +110,7 @@
             setInterval(function(){
                 that.updateTime({$refs:that.$refs});
             },that.config.updateDelay||200);
-            this.$http.get(that.config.host + "/playlist/detail?id=324617415",{})
-                .then(function(data){
-
-                    that.player.randomList = data.data.playlist.tracks;
-
-                },function(data){
-
-                });
+            this.getRandomList();
             this.player.audio.addEventListener("play",function(data){
             });
             this.player.audio.addEventListener("ended",that.playNext);
@@ -137,15 +130,17 @@
             }
         }),
         methods:mapActions(
-            ['setPlay','play','pause','playNext','playRandom','updateTime']
+            ['setPlay','play','pause','playNext','playRandom','updateTime' , 'getRandomList','addToHistoryPlayingList' ]
         )
     }
 
 </script>
 
-<style>
+<style lang="sass">
 
-    .side{
+.player{
+
+    &.side{
         position:fixed;
         bottom:20px;
         left:30px;
@@ -331,5 +326,6 @@
     .other .fa-forward{
     }
 
+}
 
 </style>
