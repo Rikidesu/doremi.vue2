@@ -1,19 +1,26 @@
-const express = require("express")
+const express = require('express')
 const router = express()
-const { createRequest } = require("../util/util")
+const { createWebAPIRequest } = require('../util/util')
 
-router.get("/", (req, res) => {
-  const offset = req.query.offset || 0
-  const limit = req.query.limit || 50
-  createRequest(`/api/artist/top?offset=${offset}&total=false&limit=${limit}`, 'GET', null)
-    .then(result => {
-      res.setHeader("Content-Type", "application/json")
-      res.send(result)
-    })
-    .catch(err => {
-      res.status(502).send('fetch error')
-    })
+router.get('/', (req, res) => {
+  const cookie = req.get('Cookie') ? req.get('Cookie') : ''
+  const data = {
+    offset: req.query.offset || 0,
+    total: true,
+    limit: req.query.limit || 50,
+    csrf_token: ''
+  }
+  createWebAPIRequest(
+    'music.163.com',
+    `/weapi/artist/top`,
+    'POST',
+    data,
+    cookie,
+    music_req => {
+      res.send(music_req)
+    },
+    err => res.status(502).send('fetch error')
+  )
 })
-
 
 module.exports = router

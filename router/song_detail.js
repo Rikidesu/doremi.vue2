@@ -1,16 +1,17 @@
-const express = require("express")
+const express = require('express')
 const router = express()
-const { createWebAPIRequest } = require("../util/util")
+const { createWebAPIRequest } = require('../util/util')
 
-router.get("/", (req, res) => {
+router.get('/', (req, res) => {
   const cookie = req.get('Cookie') ? req.get('Cookie') : ''
   const id = parseInt(req.query.ids)
   const data = {
-    "id": id,
-		'c': JSON.stringify([{ id: id }]),
-		"ids": '[' + id + ']',
-		"csrf_token": ""
+    // "id": id,
+    c: JSON.stringify([{ id: id }]),
+    ids: '[' + id + ']',
+    csrf_token: ''
   }
+  console.log(data)
   createWebAPIRequest(
     'music.163.com',
     '/weapi/v3/song/detail',

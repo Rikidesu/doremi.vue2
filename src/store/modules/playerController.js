@@ -2,7 +2,7 @@
 * @Author: Rikiponzu*
 * @Date:   2017-10-27 10:15:59
 * @Last Modified by:   Rikiponzu*
-* @Last Modified time: 2017-11-04 17:55:07
+* @Last Modified time: 2017-11-29 15:59:16
 */
 
 "use strict";
@@ -144,6 +144,18 @@ export default {
                 },function(data){
 
                 });
+        },
+        likeMusic( { commit } , { ele }){
+            Vue.http.get(this.state.config.host + "/like?id="+ele.id,{})
+            .then(function(res){
+
+                console.log(res);
+
+
+            },function(data){
+
+            });
+
         }
     },
     getters:{

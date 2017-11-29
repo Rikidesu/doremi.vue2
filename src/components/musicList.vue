@@ -20,7 +20,7 @@
                             </span>
 
                             <span title="喜欢">
-                                <i @click="setPlay({ })" class="fa fa-heart"></i>
+                                <i @click="likeMusic({ ele:song })" class="fa fa-heart"></i>
                             </span>
 
                             <span title="收藏">
@@ -109,7 +109,7 @@ export default {
         }
     },
     methods:mapActions(
-        ['setPlay','play','pause','addToPreplayingList','removeFromPreplayingList']
+        ['setPlay','play','pause','addToPreplayingList','removeFromPreplayingList','likeMusic']
     )
 
 

@@ -6,6 +6,7 @@
         <lrcBoard></lrcBoard>
         <div class="songInfo">
             <div class="songTitle">
+                <h3 title="temp">{{user.info&&user.info.nickname}}</h3>
                 <h3 title="歌名">{{player.nowPlaying.name}}</h3>
             </div>
             <div class="songSinger">
@@ -16,7 +17,6 @@
                 </ul>
             </div>
         </div>
-        <!-- <searchBoard></searchBoard> -->
         <div class="routerView" :class="{active:routePath!='/',zoom:config.alwaysShow}">
             <router-link to="/">
             <div class="closeRoute" v-show="routePath!='/'">
@@ -25,6 +25,7 @@
             </router-link>
             <router-view></router-view>
         </div>
+        <user></user>
     </div>
 </template>
 
@@ -36,16 +37,19 @@
     import bottomNav from './components/bottomNav.vue';
     // import searchBoard from './components/searchBoard.vue';
     import lrcBoard from './components/lrcBoard.vue';
+    import user from './components/user.vue';
     export default {
         components:{
             player,
             bottomNav,
             // searchBoard,
-            lrcBoard
+            lrcBoard,
+            user
         },
         name: 'app',
         computed:mapState({
             player: state => state.player,
+            user: state => state.user,
             config: state => state.config,
             routePath:function(){
                 return this.$route.fullPath

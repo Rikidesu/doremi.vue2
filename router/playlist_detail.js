@@ -1,18 +1,18 @@
 const http = require('http')
-const express = require("express")
+const express = require('express')
 const router = express()
-const { createWebAPIRequest } = require("../util/util")
+const { createWebAPIRequest } = require('../util/util')
 
-router.get("/", (req, res) => {
+router.get('/', (req, res) => {
   const cookie = req.get('Cookie') ? req.get('Cookie') : ''
   let detail, imgurl
   const data = {
-    "id": req.query.id,
-    "offset": 0,
-    "total": true,
-    "limit": 1000,
-    "n": 1000,
-    "csrf_token": ""
+    id: req.query.id,
+    offset: 0,
+    total: true,
+    limit: 1000,
+    n: 1000,
+    csrf_token: ''
   }
 
   createWebAPIRequest(
@@ -22,9 +22,10 @@ router.get("/", (req, res) => {
     data,
     cookie,
     music_req => {
-      console.log(music_req)
-      detail = music_req
-      mergeRes()
+      // console.log(music_req)
+      // detail = music_req
+      res.send(music_req)
+      // mergeRes()
     },
     err => {
       res.status(502).send('fetch error')
@@ -33,36 +34,34 @@ router.get("/", (req, res) => {
 
   // FIXME:i dont know the api to get coverimgurl
   // so i get it by parsing html
-  const http_client = http.get({
-    hostname: 'music.163.com',
-    path: '/playlist?id=' + req.query.id,
-    headers: {
-      'Referer': 'http://music.163.com',
-    },
-  }, function (res) {
-    res.setEncoding('utf8')
-    let html = ''
-    res.on('data', function (chunk) {
-      html += chunk
-    })
-    res.on('end', function () {
-      console.log('end', html)
-      const regImgCover = /\<img src=\"(.*)\" class="j-img"/ig
-      imgurl = regImgCover.exec(html)[1]
-      mergeRes()
+  // const http_client = http.get({
+  //   hostname: 'music.163.com',
+  //   path: '/playlist?id=' + req.query.id,
+  //   headers: {
+  //     'Referer': 'http://music.163.com',
+  //   },
+  // }, function (res) {
+  //   res.setEncoding('utf8')
+  //   let html = ''
+  //   res.on('data', function (chunk) {
+  //     html += chunk
+  //   })
+  //   res.on('end', function () {
+  //     console.log('end', html)
+  //     const regImgCover = /\<img src=\"(.*)\" class="j-img"/ig
+  //     imgurl = regImgCover.exec(html)[1]
+  //     mergeRes()
 
-    })
-  })
+  //   })
+  // })
 
-  function mergeRes() {
-    if (imgurl != undefined && detail != undefined) {
-      detail = JSON.parse(detail)
-      detail.playlist.picUrl = imgurl
-      res.send(detail)
-    }
-  }
+  // function mergeRes() {
+  //   if (imgurl != undefined && detail != undefined) {
+  //     detail = JSON.parse(detail)
+  //     detail.playlist.picUrl = imgurl
+  //     res.send(detail)
+  //   }
+  // }
 })
-
-
 
 module.exports = router
