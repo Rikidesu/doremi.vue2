@@ -2,7 +2,7 @@
 * @Author: Rikiponzu*
 * @Date:   2017-10-27 10:15:59
 * @Last Modified by:   Rikiponzu*
-* @Last Modified time: 2017-11-29 15:59:16
+* @Last Modified time: 2017-11-30 09:10:30
 */
 
 "use strict";
@@ -96,7 +96,7 @@ export default {
                 this.state.player.audio.src=url;
             } else {
 
-                this.state.player.coverUrl = ele.album&&ele.album.blurPicUrl||ele.al&&ele.al.picUrl||this.player.coverUrl;
+                this.state.player.coverUrl = ele.album&&ele.album.blurPicUrl||ele.al&&ele.al.picUrl||this.state.player.coverUrl;
                 this.state.player.backgroundUrl=this.state.player.coverUrl;
 
                 Vue.http.get(this.state.config.host +'/music/url?id='+ele.id,{})
