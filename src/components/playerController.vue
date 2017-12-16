@@ -107,9 +107,8 @@
         // name:"player",
         mounted:function(){
             let that = this;
-            setInterval(function(){
-                that.updateTime({$refs:that.$refs});
-            },that.config.updateDelay||200);
+            // this.lrc.lrcUpdate =
+            // this.setLrcUpdate();
             this.getRandomList();
             this.player.audio.addEventListener("play",function(data){
             });
@@ -173,7 +172,7 @@
         background-color: rgba(250,250,250,.9);
     }
 
-    .cover-container:hover .controller{
+    &:hover .controller{
         transform: scale(1) translateY(0);
         opacity:.93
     }

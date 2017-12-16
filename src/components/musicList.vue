@@ -1,7 +1,7 @@
 <template>
     <div class="playListBody">
         <div class="playListTable" :class="{hasCover:menuList.cover}">
-            <div class="playListRow" v-for="(song,$index) in list.slice(0,30)" :key="'num_'+$index">
+            <div class="playListRow" v-for="(song,$index) in page.list" :key="'num_'+$index">
                 <div class="orderNumber" :class="'width'+menuList.orderNumber" v-show="menuList.orderNumber">
                     <p>{{$index+1}}</p>
                 </div>
@@ -73,6 +73,15 @@
             </div>
         </div>
 
+        <!-- <p>{{page.list[0].name}}</p> -->
+        <div class="page">
+            <ul>
+                <li v-for="page in this.page.maxPage " @click="setPage(page)">
+                    {{ page }}
+                </li>
+            </ul>
+        </div>
+
     </div>
 
 </template>
@@ -86,11 +95,26 @@ import Vuex , { mapState , mapActions } from 'vuex';
 
 export default {
 
-    computed:mapState({
-        player(){
-            return this.$store.state.player
-        }
-    }),
+
+    computed:{
+        page:function(){
+            return {
+                total:this.list.length,
+                limit:30,
+                maxPage:Math.ceil(this.list.length/30)||1,
+                currentPage:1,
+                list:[]
+            }
+        },
+        currentPage:function(){
+            return 1;
+        },
+        ...mapState({
+            player(){
+                return this.$store.state.player
+            }
+        })
+    },
     props:{
         list:{
             required:true
@@ -108,15 +132,20 @@ export default {
             }
         }
     },
-    methods:mapActions(
-        ['setPlay','play','pause','addToPreplayingList','removeFromPreplayingList','likeMusic']
-    )
+    methods:{
+        setPage(page){
+            console.log(this);
+            this.page.currentPage=page;
+            // this.page.list=1;
+            this.page.list = this.page.list.slice(this.page.limit*(page-1),this.page.limit*page);
+        },
+        ...mapActions(['setPlay','play','pause','addToPreplayingList','removeFromPreplayingList','likeMusic'])
+    }
 
 
 
 
 }
-
 
 </script>
 

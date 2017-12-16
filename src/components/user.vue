@@ -2,7 +2,7 @@
 
     <div class="userModule">
 
-        <div v-show="!user.isLogin" class="login">
+        <div v-show="!user.isLogin&&false" class="login">
 
             <form @submit.prevent="login(form)">
                 手机号：<input type="tel" name="mobile" v-model="form.mobile" />

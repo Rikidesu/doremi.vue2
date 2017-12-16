@@ -1,6 +1,6 @@
 <template>
-        <div class="lrcboard" :class="{blur:!config.alwaysShow&&(isSearch||routePath!='/'),zoom:config.alwaysShow&&(config.secondScreen||routePath!='/')}" id="lrcboard">
-            <ul id="lrc">
+        <div class="lrcboard" :class="{blur:!config.alwaysShow&&(isSearch||routePath!='/'),zoom:config.alwaysShow&&(config.secondScreen||routePath!='/')}"  ref="lrcboard" id="lrcboard" @scroll="lrcOnScroll()">
+            <ul id="lrc" ref="lrc">
                 <li v-if="!lrc.result" style=" line-height: 1000%;">ヽ(*´∀｀*)ノ.+ﾟおはよ～♪.+ﾟ</li>
                 <li :class="{active:$index==lrc.now-1}" v-for="(x,$index) in lrc.result">
                     <div class="lrc">{{x[1] +" "}}</div>
@@ -16,7 +16,6 @@
     "use strict";
     import Vuex , { mapState , mapActions } from 'vuex';
     export default {
-
         name:"lrcBoard",
         //props:['data'],
         computed:mapState({
@@ -37,6 +36,9 @@
                 return this.$route.fullPath
             }
         }),
+        methods:mapActions(
+            [ 'lrcOnScroll' ]
+        )
 
 
     }

@@ -2,7 +2,7 @@
 * @Author: Rikiponzu*
 * @Date:   2017-10-27 10:15:59
 * @Last Modified by:   Rikiponzu*
-* @Last Modified time: 2017-11-30 09:10:30
+* @Last Modified time: 2017-12-16 15:41:51
 */
 
 "use strict";
@@ -28,27 +28,45 @@ export default {
         coverUrl:"./src/img/default.jpg",
         state:{
             rotate:false
-        }
+        },
+        updateTime:'',
+        updateTimeDelay:200,
     },
     mutations:{
-        _play:function(state , { url }={}){
+        _play:function( state , { url }={}){
             !this.state.player.isPlay&&this.state.player.audio.play();
-            this.state.player.isPlay=true;
+            this.state.player.isPlay=!this.state.player.audio.paused;
+            this.dispatch("setLrcUpdate");
+            this.commit("_setUpdateTime");
+
+            this.state.config.debug && console.log("commit _play");
+            this.state.config.debug && console.log("audio paused:"+this.state.player.audio.paused);
+
         },
-        _pause:function(state  ){
+        _pause:function( state  ){
             this.state.player.isPlay&&this.state.player.audio.pause();
-            this.state.player.isPlay=false;
+            this.state.player.isPlay=!this.state.player.audio.paused;
+            this.dispatch("cancelLrcUpdate");
+            this.commit("_cancelUpdateTime");
+
+            this.state.config.debug && console.log("commit _pause");
+            this.state.config.debug && console.log("audio paused:"+this.state.player.audio.paused);
         },
-        _playNext:function( state  ){
-            this.state.player.playRandom();
-        },
-        _playRandom:function( state ){
-            this.state.player.setPlay(this.state.player.randomList[Math.floor(Math.random()*(this.state.player.randomList.length))]);
-        },
+        // _playNext:function( state  ){
+        //     this.state.player.playRandom();
+        // },
+        // _playRandom:function( state ){
+        //     this.state.player.setPlay(this.state.player.randomList[Math.floor(Math.random()*(this.state.player.randomList.length))]);
+        // },
         _setPlay:function( state , { res , ele }){
             if(!res.data.data[0].url){
                 this.dispatch("playNext");
             };
+            if(!res.data.data[0].url){
+                this.state.config.debug && console.log("_setPlay: url is empty");
+                this.dispatch( "playNext" );
+                return false;
+            }
             this.state.player.audio.src = res.data.data[0].url;
             !this.state.player.isPlay && this.commit("_play");
             this.dispatch( "addToHistoryPlayingList", { ele } );
@@ -63,13 +81,26 @@ export default {
             this.state.player.duration.real = this.state.player.audio.duration ? ((this.state.player.audio.duration/60)<10?"0":"")+parseInt(this.state.player.audio.duration/60)+":"+(parseInt(this.state.player.audio.duration%60)<10?"0":"")+parseInt(this.state.player.audio.duration%60) : "(>^ω^<)喵";
 
         },
+        _setUpdateTime:function( ){
+            this.commit("_cancelUpdateTime");
+            this.state.player.updateTime = setInterval(function(){
+                this.commit("_updateTime");
+            }.bind(this),this.state.player.updateTimeDelay);
+        },
+        _cancelUpdateTime:function({ }){
+            this.state.player.updateTime && clearInterval(this.state.player.updateTime);
+        },
         _getRandomList:function( {} , { list } ){
             this.state.player.randomList = list;
         }
     },
     actions:{
-        play( { commit } , { url }={} ) {
-            commit("_play" , { url });
+        play( { commit , dispatch } , { url }={} ) {
+            if(this.state.player.nowPlaying){
+                commit("_play" , { url });
+            }else{
+                dispatch("playNext");
+            }
         },
         pause( { commit } ){
             commit("_pause");
@@ -83,8 +114,6 @@ export default {
             }else{
                 dispatch("playRandom");
             }
-
-            // let a = dispatch("playRandom");
         },
         playRandom( { commit , state , dispatch} ) {
             dispatch("setPlay" , { ele : this.state.player.randomList[Math.floor(Math.random()*(this.state.player.randomList.length))] });
@@ -94,8 +123,10 @@ export default {
             this.state.player.nowPlaying = ele;
             if(url){
                 this.state.player.audio.src=url;
-            } else {
-
+            } else if (!ele){
+                alert('没有给我歌曲参数啊！！！');
+            }
+            else {
                 this.state.player.coverUrl = ele.album&&ele.album.blurPicUrl||ele.al&&ele.al.picUrl||this.state.player.coverUrl;
                 this.state.player.backgroundUrl=this.state.player.coverUrl;
 
@@ -108,10 +139,6 @@ export default {
                         console.info(res)
                     })
             }
-        },
-        updateTime( { commit } , { $refs }={} ){
-            commit("_updateTime" );
-            this.state.lrc&&this.state.lrc.result&&commit("_updateLrc" , { $refs });
         },
         download( { commit } , { ele,url }={}){
             let that = this;

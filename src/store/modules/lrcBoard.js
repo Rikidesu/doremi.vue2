@@ -2,7 +2,7 @@
 * @Author: Rikiponzu*
 * @Date:   2017-10-27 14:19:57
 * @Last Modified by:   Rikiponzu*
-* @Last Modified time: 2017-10-30 13:32:15
+* @Last Modified time: 2017-12-16 15:18:17
 */
 "use strict";
 import Vue from "vue";
@@ -15,7 +15,11 @@ export default {
         dom:'',
         alwaysShow:false, //歌词始终显示
         lrcboard:"",
-        lrc:""
+        lrc:"",
+        lrcUpdate:'',
+        lrcScroll:true,
+        lrcOnScrollTimeout:'',
+        lrcReScrollDelay:3000,
     },
     mutations:{
         _getLrc:function( state , { res } = {} ){
@@ -44,10 +48,8 @@ export default {
                     if(this.state.player.audio.currentTime>=this.state.lrc.result[i][0]){
                         this.state.lrc.now=i+1;
                         try{
-
                             this.state.lrc.lrcboard = this.state.lrc.lrcboard || document.querySelector("#lrcboard");
                             this.state.lrc.lrc = this.state.lrc.lrc || document.querySelector("#lrc");
-
                             let el = this.state.lrc.lrcboard;
                             let from = this.state.lrc.lrcboard.scrollTop;
                             let toEl = this.state.lrc.lrc.querySelector(".active");
@@ -62,7 +64,7 @@ export default {
                                     requestAnimationFrame(scrollTo);
                                 }
                             };
-                            requestAnimationFrame(scrollTo);
+                            this.state.lrc.lrcScroll && requestAnimationFrame(scrollTo);
                             //this.$refs.lrcboard.scrollTop = this.$refs.lrc.querySelector(".active").offsetTop;
                         }catch(e){
                         }
@@ -73,6 +75,33 @@ export default {
                     }
                 }
             }
+        },
+        _setLrcUpdate:function( state , { onlyScroll }={} ){
+            var that = this;
+            if(onlyScroll){
+                this.state.lrc.lrcScroll = true;
+                return;
+            }
+            if(this.state.lrc.lrcUpdate){ this.commit("_cancelLrcUpdate") }
+            this.state.lrc.lrcUpdate = setInterval(function(){
+                that.dispatch('updateLrc',{$refs:that.$refs});
+            },this.state.config.updateDelay||200);
+        },
+        _cancelLrcUpdate:function( state , { onlyScroll }={}){
+            if(onlyScroll){
+                this.state.lrc.lrcScroll = false;
+                return;
+            }
+            this.state.lrc.lrcUpdate&&clearInterval(this.state.lrc.lrcUpdate);
+
+            this.state.config.debug && console.log(this.state.lrc.lrcUpdate);
+        },
+        _lrcOnScroll:function(){
+            this.commit('_cancelLrcUpdate',{ onlyScroll:true });
+            this.state.lrc.lrcOnScrollTimeout && clearTimeout(this.state.lrc.lrcOnScrollTimeout);
+            this.state.lrc.lrcOnScrollTimeout = setTimeout(function(){
+                this.commit("_setLrcUpdate",{ onlyScroll:true });
+            }.bind(this),this.state.lrc.lrcReScrollDelay);
         }
     },
     actions:{
@@ -177,6 +206,15 @@ export default {
             }catch(e){
                 console.info(e)
             }
+        },
+        setLrcUpdate:function({ commit }){
+            commit("_setLrcUpdate");
+        },
+        cancelLrcUpdate:function({ commit }){
+            commit("_cancelLrcUpdate");
+        },
+        lrcOnScroll:function({ commit }){
+            commit("_lrcOnScroll");
         }
 
     }
