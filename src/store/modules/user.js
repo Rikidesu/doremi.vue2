@@ -2,17 +2,17 @@
 * @Author: Rikiponzu*
 * @Date:   2017-11-29 14:39:02
 * @Last Modified by:   Rikiponzu*
-* @Last Modified time: 2017-11-29 18:09:16
+* @Last Modified time: 2017-12-17 18:22:59
 */
 "use strict";
 import Vue from 'vue';
 export default {
     state:{
+        show:false,
         isLogin:false,
         info:{},
     },
     mutations:{
-
         _login( state , { profile } ){
             this.state.user.info = profile;
             this.state.user.isLogin = true;
@@ -24,7 +24,6 @@ export default {
             !restore && ( delete sessionStorage.userInfo );
             !restore && ( this.state.user.isLogin = false );
         }
-
     },
     actions:{
         login( { commit } , form ){
@@ -36,6 +35,8 @@ export default {
             request.then(function(res){
                 if(res.data.code==200){
                     commit("_login" , { profile:res.data.profile } );
+                }else{
+                    alert(res.data.msg)
                 }
             },function(res){
 

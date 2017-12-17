@@ -2,13 +2,20 @@
 
     <div class="userModule">
 
-        <div v-show="!user.isLogin&&false" class="login">
+        <div v-show="user.show&&!user.isLogin" class="login">
 
             <form @submit.prevent="login(form)">
-                手机号：<input type="tel" name="mobile" v-model="form.mobile" />
-                密码： <input type="password" name="password" v-model="form.password" />
-
-                <button type="submit">登陆</button>
+                <div class="loginForm">
+                    <div>
+                        <span>手机号：</span>
+                        <span> <input type="tel" name="mobile" v-model="form.mobile" /> </span>
+                    </div>
+                    <div>
+                        <span>密码： </span>
+                        <span><input type="password" name="password" v-model="form.password" /></span>
+                    </div>
+                    <button type="submit">登陆</button>
+                </div>
             </form>
 
         </div>
@@ -70,6 +77,20 @@ export default {
         justify-content:center;
         align-items:center;
         pointer-events:none;
+    }
+
+    .loginForm{
+        width:60%;
+        margin: 20px auto;
+        display:table;
+        text-align: center;
+    }
+    .loginForm > div{
+        display:table-row;
+    }
+    .loginForm > div > span{
+        padding: 20px 0 ;
+        display:table-cell;
     }
 
     *{

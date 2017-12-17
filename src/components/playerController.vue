@@ -70,11 +70,11 @@
                                 <input style="width:70px" type="range" step="any" v-model="player.audio.volume" min="0" max="1" />
                             </li>
                             <li><i class="fa fa-list"></i> 播放列表 </li>
-                            <li><i class="fa fa-user-circle-o"></i> 登陆 </li>
+                            <li @click="user.show = !user.show"><i class="fa fa-user-circle-o"></i> 登陆 </li>
                             <li><i class="fa fa-heart"></i> 最爱 </li>
                             <li><i class="fa fa-list-ul"></i> 歌单 </li>
                             <li><i class="fa fa-gear"></i> 页面设置 </li>
-                            <li><i class="fa fa-heart"></i> hello </li>
+                            <li title="歌词更新频率"><i class="fa fa-spinner"></i> <input style="width:70px" type="range" step="any" v-model="config.updateDelay" min="10" max="1000" /> </li>
                             <li><i class="fa fa-heart"></i> hello </li>
                             <li><i class="fa fa-heart"></i> hello </li>
                             <li><i class="fa fa-heart"></i> hello </li>
@@ -110,8 +110,7 @@
             // this.lrc.lrcUpdate =
             // this.setLrcUpdate();
             this.getRandomList();
-            this.player.audio.addEventListener("play",function(data){
-            });
+            // this.player.audio.addEventListener("play",function(data){});
             this.player.audio.addEventListener("ended",that.playNext);
         },
         computed:mapState({
@@ -126,6 +125,9 @@
             },
             search(){
                 return this.$store.state.search
+            },
+            user(){
+                return this.$store.state.user
             }
         }),
         methods:mapActions(
@@ -269,7 +271,7 @@
     }
     .play{
         position:relative;
-        margin:25px auto -15px auto;
+        margin:20px auto -15px auto;
         text-align: center;
         color:#FFF;
         font-size: 50px;

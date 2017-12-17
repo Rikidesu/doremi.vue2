@@ -1,12 +1,16 @@
 <template>
     <div class="playListBody">
+<!--         <div v-show="selected.length>1">
+            <span>已选择 {{ selected.length }} 项</span>
+        </div> -->
+
         <div class="playListTable" :class="{hasCover:menuList.cover}">
-            <div class="playListRow" v-for="(song,$index) in page.list" :key="'num_'+$index">
-                <div class="orderNumber" :class="'width'+menuList.orderNumber" v-show="menuList.orderNumber">
-                    <p>{{$index+1}}</p>
+            <div class="playListRow" v-for="(song,$index) in page.list" :key="'num_'+$index" :class="{'active':(selected.indexOf($index)!=-1)}">
+                <div @click="select(song,$index)" class="orderNumber" :class="'width'+menuList.orderNumber" v-show="menuList.orderNumber">
+                    <p>{{ $index+1 + ((page.currentPage-1)*page.limit) }}</p>
                 </div>
                 <div class="cover" v-show="menuList.cover">
-                    <div class="coverImg" :style="{backgroundImage: 'url(' +  ( ( song.album&&song.album.picUrl ) || song.al.picUrl ) + ')'}">
+                    <div class="coverImg" :style="{backgroundImage: 'url(' +  ( ( song.album&&song.album.picUrl ) || song.al&&song.al.picUrl ) + ')'}">
                     </div>
                 </div>
                 <div class="title" :class="'width'+menuList.title" v-show="menuList.title">
@@ -60,7 +64,6 @@
                 <div class="duration" :class="'width'+menuList.duration" v-show="menuList.duration">
                     <span>
                         <p>{{
-
                             song.duration ?
                             ((song.duration/60000)<10?"0":"")+parseInt(song.duration/60000)+":"+(parseInt((song.duration/1000)%60)<10?"0":"")+parseInt((song.duration/1000)%60)
                             :
@@ -73,11 +76,17 @@
             </div>
         </div>
 
-        <!-- <p>{{page.list[0].name}}</p> -->
+        <!-- <p>{{ page.list[0].name }}</p> -->
         <div class="page">
             <ul>
-                <li v-for="page in this.page.maxPage " @click="setPage(page)">
-                    {{ page }}
+                <li @click="setPage(page.currentPage-1)" :class="{'disabled':page.currentPage<=1}">
+                    上一页
+                </li>
+                <li v-for="p in this.page.pageArr " @click="setPage(p)" :class="{'active':page.currentPage==p}">
+                    {{ p }}
+                </li>
+                <li @click="setPage(page.currentPage+1)" :class="{'disabled':page.currentPage>=page.maxPage}">
+                    下一页
                 </li>
             </ul>
         </div>
@@ -96,28 +105,57 @@ import Vuex , { mapState , mapActions } from 'vuex';
 export default {
 
 
-    computed:{
-        page:function(){
-            return {
+    data(){
+        return {
+            // list:this.list,
+            page:{
                 total:this.list.length,
-                limit:30,
-                maxPage:Math.ceil(this.list.length/30)||1,
+                limit:10,
+                maxPage:1,
                 currentPage:1,
-                list:[]
-            }
-        },
-        currentPage:function(){
-            return 1;
-        },
+                list:[],
+                pageArr:[1]
+            },
+            selected:[]
+        }
+    },
+    mounted:function(){
+        this.page.total = this.list.length;
+        this.page.maxPage = Math.ceil(this.list.length/this.page.limit)||1;
+        this.page.list = this.list.slice(0,this.page.limit);
+        this.page.cuurentPage = 1;
+        this.page.limit = this.page.limit;
+        this.page.pageArr = this.setPage(1);
+    },
+    watch:{
+        'list':{
+            handler: function (newVal) {
+                console.log("musicList:  list change");
+                console.log(newVal);
+                this.page.total = newVal.length;
+                this.page.maxPage = Math.ceil(newVal.length/this.page.limit)||1;
+                this.page.list = newVal.slice(0,this.page.limit);
+                this.page.cuurentPage = 1;
+                this.page.limit = this.page.limit;
+                this.page.pageArr = this.setPage(1);
+            },
+            deep: true
+        }
+    },
+    computed:{
         ...mapState({
             player(){
                 return this.$store.state.player
+            },
+            config(){
+                return this.$store.state.config
             }
         })
     },
     props:{
         list:{
-            required:true
+            required:true,
+            // default:false
         },
         menuList:{
             default(){
@@ -133,11 +171,42 @@ export default {
         }
     },
     methods:{
-        setPage(page){
-            console.log(this);
-            this.page.currentPage=page;
+        setPage(p){
+            if(p<1||p>this.page.maxPage){
+                alert("页数不对呀");
+                return false
+            }
+            this.page.currentPage=p;
             // this.page.list=1;
-            this.page.list = this.page.list.slice(this.page.limit*(page-1),this.page.limit*page);
+            this.page.list = this.list.slice(this.page.limit*(p-1),this.page.limit*p);
+            let arr = this.page.maxPage;
+            if(this.page.maxPage>10){
+                let num = 1;
+                arr = [p];
+                while(num<9){
+                    if(arr[Math.ceil(arr.length/2)-1] >= ( ( arr[0] + arr[arr.length-1] ) / 2) ){
+                        if(arr[0]>1){
+                            arr.unshift(arr[0]-1)
+                        }else{
+                            arr.push(arr[arr.length-1]+1)
+                        }
+                    }else{
+                        if(arr[arr.length-1]>=this.page.maxPage){
+                            arr.unshift(arr[0]-1)
+                        }else{
+                            arr.push(arr[arr.length-1]+1)
+                        }
+                    }
+                    num++;
+                }
+                arr[0] == 1 ? '' : arr.unshift(1);
+                arr[arr.length-1] == this.page.maxPage ? '' : arr.push(this.page.maxPage);
+                this.page.pageArr = arr;
+            }
+            return arr
+        },
+        select(song,$index){
+            this.selected.indexOf($index)!=-1 ? this.selected.splice(this.selected.indexOf($index),1) : this.selected.push($index);
         },
         ...mapActions(['setPlay','play','pause','addToPreplayingList','removeFromPreplayingList','likeMusic'])
     }
@@ -324,6 +393,40 @@ export default {
                 border-color: rgba(102, 204, 255,.95);
             }
         }
+        &.active{
+            border: solid 1px #66ccff;
+            box-shadow: 0 0 3px 1px #66ccff;
+            background-color:rgba(102, 204, 255,.2)
+        }
+    }
+    .page ul{
+        list-style: none;
+        display:flex;
+        justify-content:center;
+    }
+    .page ul li{
+        display:inline-block;
+        padding:5px 12px;
+        margin:0 5px;
+        height:20px;
+        line-height:20px;
+        border:solid 1px #666;
+        border-radius:2px;
+        cursor: pointer;
+        transition:all 0.3s;
+    }
+    .page ul li:hover{
+        background-color:#fff;
+        color:#6cf;
+    }
+    .page ul li.active{
+        background-color:#6cf;
+        color:#fff;
+    }
+    .page ul li.disabled{
+        border:solid 1px #ddd!important;
+        color:#ddd!important;
+        pointer-events:none;
     }
 
 }

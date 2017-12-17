@@ -2,7 +2,7 @@
 * @Author: Rikiponzu*
 * @Date:   2017-10-27 14:19:57
 * @Last Modified by:   Rikiponzu*
-* @Last Modified time: 2017-12-16 15:18:17
+* @Last Modified time: 2017-12-17 22:58:15
 */
 "use strict";
 import Vue from "vue";
@@ -50,22 +50,39 @@ export default {
                         try{
                             this.state.lrc.lrcboard = this.state.lrc.lrcboard || document.querySelector("#lrcboard");
                             this.state.lrc.lrc = this.state.lrc.lrc || document.querySelector("#lrc");
+                            this.state.lrc.scroller = this.state.lrc.scroller || document.querySelector("#scroller");
                             let el = this.state.lrc.lrcboard;
-                            let from = this.state.lrc.lrcboard.scrollTop;
+                            let lrc = this.state.lrc.lrc;
+                            let scroller = this.state.lrc.scroller;
+                            // let from = this.state.lrc.lrcboard.scrollTop;
                             let toEl = this.state.lrc.lrc.querySelector(".active");
-                            let to = toEl.offsetTop-this.state.lrc.lrcboard.clientHeight/2+toEl.clientHeight*3;
-                            let dur = (to-from)/30;
-                            let scrollTo = function(){
-                                from+=dur;
-                                el.scrollTop = from;
-                                if(dur>0&&from<to){
-                                    requestAnimationFrame(scrollTo);
-                                }else if(dur<0&&from>to){
-                                    requestAnimationFrame(scrollTo);
-                                }
-                            };
-                            this.state.lrc.lrcScroll && requestAnimationFrame(scrollTo);
-                            //this.$refs.lrcboard.scrollTop = this.$refs.lrc.querySelector(".active").offsetTop;
+                            let to = toEl.offsetTop-this.state.lrc.lrcboard.clientHeight/2+toEl.clientHeight*8;
+                            // let dur = (to-from)/20;
+                            // let scrollTo = function(){
+                            //     from+=dur;
+                            //     // el.scrollTop = from;
+                            //     if(dur>0&&from<to){
+                            //         requestAnimationFrame(scrollTo);
+                            //     }else if(dur<0&&from>to){
+                            //         requestAnimationFrame(scrollTo);
+                            //     }
+                            // };
+                            // this.state.lrc.lrcScroll && requestAnimationFrame(scrollTo);
+                            // this.$refs.lrcboard.scrollTop = this.$refs.lrc.querySelector(".active").offsetTop;
+
+                            this.state.lrc.lrcScroll && requestAnimationFrame(function(){
+                                lrc.style.transform = "translateY(-"+ to +"px)"
+                                lrc.style.webkitTransform = "translateY(-"+ to +"px)";
+                                lrc.style.oTransform = "translateY(-"+ to +"px)";
+                                scroller.style.transform = "translateY("
+                                  + ((to/lrc.clientHeight) * el.clientHeight
+                                  - (to/lrc.clientHeight) * scroller.clientHeight )
+                                +"px";
+                            })
+
+
+
+
                         }catch(e){
                         }
                         break;
@@ -77,30 +94,34 @@ export default {
             }
         },
         _setLrcUpdate:function( state , { onlyScroll }={} ){
-            var that = this;
+            let that = this;
             if(onlyScroll){
                 this.state.lrc.lrcScroll = true;
                 return;
             }
+            this.state.lrc.lrcScroll = true;
             if(this.state.lrc.lrcUpdate){ this.commit("_cancelLrcUpdate") }
             this.state.lrc.lrcUpdate = setInterval(function(){
                 that.dispatch('updateLrc',{$refs:that.$refs});
             },this.state.config.updateDelay||200);
         },
-        _cancelLrcUpdate:function( state , { onlyScroll }={}){
+        _cancelLrcUpdate:function( state , { onlyScroll }={ onlyScroll:true }){
             if(onlyScroll){
                 this.state.lrc.lrcScroll = false;
                 return;
+
             }
+            console.log("cancel?"+onlyScroll);
             this.state.lrc.lrcUpdate&&clearInterval(this.state.lrc.lrcUpdate);
 
             this.state.config.debug && console.log(this.state.lrc.lrcUpdate);
         },
         _lrcOnScroll:function(){
+            console.log('scrolling');
             this.commit('_cancelLrcUpdate',{ onlyScroll:true });
             this.state.lrc.lrcOnScrollTimeout && clearTimeout(this.state.lrc.lrcOnScrollTimeout);
             this.state.lrc.lrcOnScrollTimeout = setTimeout(function(){
-                this.commit("_setLrcUpdate",{ onlyScroll:true });
+                this.commit("_setLrcUpdate");
             }.bind(this),this.state.lrc.lrcReScrollDelay);
         }
     },
@@ -200,18 +221,21 @@ export default {
                     }
                 });
                 //this.lrc.result = result;
-                result.unshift([0,'']);
+                result.unshift([-1,'']);
+                result.unshift([-1,'']);
+                result.push([99999,''],[99999,'']);
                 result.push([99999,''],[99999,'']);
                 return result
             }catch(e){
                 console.info(e)
             }
         },
-        setLrcUpdate:function({ commit }){
-            commit("_setLrcUpdate");
+        setLrcUpdate:function({ commit } , onlyScroll ){
+            commit("_setLrcUpdate" , { onlyScroll:onlyScroll } = {} );
         },
-        cancelLrcUpdate:function({ commit }){
-            commit("_cancelLrcUpdate");
+        cancelLrcUpdate:function({ commit } , onlyScroll ){
+            console.log(onlyScroll);
+            commit("_cancelLrcUpdate" , { onlyScroll:onlyScroll } = { onlyScroll:true });
         },
         lrcOnScroll:function({ commit }){
             commit("_lrcOnScroll");

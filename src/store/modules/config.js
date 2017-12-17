@@ -2,7 +2,7 @@
 * @Author: Rikiponzu*
 * @Date:   2017-10-27 14:34:58
 * @Last Modified by:   Rikiponzu*
-* @Last Modified time: 2017-12-16 14:25:04
+* @Last Modified time: 2017-12-17 19:04:21
 */
 export default {
     state:{
@@ -10,7 +10,7 @@ export default {
         debug:true,
         secondScreen:false,
         items: [1,2,3,4,5,6,7,8,9],
-        updateDelay:500,
+        updateDelay:50,
         alwaysShow:false,
         site:{
             title:"Doremi.moe",

@@ -2,7 +2,7 @@
 * @Author: Rikiponzu*
 * @Date:   2017-10-27 10:15:59
 * @Last Modified by:   Rikiponzu*
-* @Last Modified time: 2017-12-16 15:41:51
+* @Last Modified time: 2017-12-17 19:01:39
 */
 
 "use strict";
@@ -30,7 +30,6 @@ export default {
             rotate:false
         },
         updateTime:'',
-        updateTimeDelay:200,
     },
     mutations:{
         _play:function( state , { url }={}){
@@ -85,7 +84,7 @@ export default {
             this.commit("_cancelUpdateTime");
             this.state.player.updateTime = setInterval(function(){
                 this.commit("_updateTime");
-            }.bind(this),this.state.player.updateTimeDelay);
+            }.bind(this),this.state.config.updateDelay);
         },
         _cancelUpdateTime:function({ }){
             this.state.player.updateTime && clearInterval(this.state.player.updateTime);
